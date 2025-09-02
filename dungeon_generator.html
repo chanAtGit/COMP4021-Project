@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dungeon Map Generator</title>
+<style>
+    body {
+        font-family: "Courier New", Courier, monospace;
+        background: #111;
+        color: #eee;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+        color: #ffcc00;
+    }
+    #controls {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    #map-div {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    #map {
+        white-space: pre;
+        line-height: 1.2;
+        font-size: 1.2rem;
+        background: #222;
+        padding: 15px;
+        border-radius: 8px;
+        display: inline-block;
+        overflow-x: auto;
+        text-align: center;
+    }
+    /* Colour coding for room contents */
+    .room-S { color: #00ff00; font-weight: bold; }   /* Start */
+    .room-E { color: #ff6600; font-weight: bold; }   /* Exit */
+    .room-B { color: #ff0000; font-weight:pre; }      /* Boss */
+    .room-M { color: #ff00ff; }                      /* Monster */
+    .room-T { color: #ffff00; }                      /* Treasure */
+    .room-n { color: #888888; }                      /* Empty / None */
+</style>
+</head>
+<body>
+
+<h1>Dungeon Map Generator</h1>
+
+<div id="controls">
+    <label for="roomCount">Number of rooms:</label>
+    <input type="number" id="roomCount" value="18" min="5" max="100">
+    <button id="generateBtn">Generate Dungeon</button>
+</div>
+
+<div id = "map-div">
+    <pre id="map"></pre>
+</div>
+
+<script src="dungeon_generator_1.js"></script>
+
+</body>
+</html>
