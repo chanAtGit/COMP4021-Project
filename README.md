@@ -1,4 +1,4 @@
-**Game Title: 1 v 1 Me Bro**
+**Game Title: SHOWDOWN**
 - Fast-paced 1v1 top-down shooter
 - Match time: 3 minutes. 
 - Weapons and items spawn randomly on the ground
