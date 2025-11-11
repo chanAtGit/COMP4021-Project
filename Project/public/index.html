@@ -9,50 +9,154 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         html, body {
             width: 100%;
             height: 100%;
             overflow: hidden;
             background-color: black;
         }
-        
+
         body {
             font-family: "Press Start 2P", sans-serif;
+            font-size: 11px;
+            cursor: url(assets/crosshair.png) 21 21, auto;
         }
-        
-        #game-container {
+
+        .pages{
             position: relative;
             width: 100vw;
             height: 100vh;
         }
-        
+
+        #gameplay-page {
+            display:block;
+        }
+
+        canvas, #upperUI, #game-start, #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
         canvas {
-            /* Stretch the background while preserving its aspect ratio */
             background: url(assets/game_arena.jpg);
             background-size: 1536px 695px;
             background-repeat: no-repeat;
-
-            /* Make the canvas itself fill the window */
             width: 1536px;
             height: 695px;
+        }
+
+        #upperUI {
+            display: block;
+        }
+
+        #upperUI text {
+            font-size: 13px;
+            fill: white;
+            stroke: black;
+            stroke-width: 1px;
+        }
+
+        #time-remaining {
+            font-size: 130%;
+        }
+
+        #player1-score {
+            fill: red;
+            stroke: red;
+            stroke-width: 0.5px;
+        }
+
+        #player2-score {
+            fill: blue;
+            stroke: blue;
+            stroke-width: 0.5px;
+        }
+
+        #slot-container {
             position: absolute;
+            right: 20px;
+            bottom: 20px;
+            display: flex;
+            gap: 12px;               /* space between the two squares */
+        }
+
+        .slot {
+            width: 100px;
+            height: 100px;
+            border: 4px solid grey;  /* medium thickness, grey by default */
+            border-radius: 5%;
+            background-color: rgb(255,255,255,0.4);
         }
     </style>
 </head>
-
 <body>
-    <div id = "game-container">
+    <!-- Gameplay Page -->
+    <div id="gameplay-page" class = "pages">
         <canvas width="1536px" height="695px"></canvas>
+
+        <svg xmlns="http://www.w3.org/2000/svg" id="upperUI" viewBox="0 0 1000 50">
+            <rect width="1000" height="50" x="0" y="0" fill="black" />
+            <g id="healthBar-1">
+                <line x1="10" y1="25" x2="300" y2="25" stroke="grey" stroke-width="24"/>
+                <line id="player1-hpLine" x1="12" y1="25" x2="298" y2="25" stroke="red" stroke-width="20"/>
+                <text x="15" y="35">P1:<tspan id="player1-HP">100</tspan></text>
+            </g>
+
+            <g id="healthBar-2">
+                <line x1="700" y1="25" x2="990" y2="25" stroke="grey" stroke-width="24"/>
+                <line id="player2-hpLine" x1="702" y1="25" x2="988" y2="25" stroke="blue" stroke-width="20"/>
+                <text x="910" y="35">P2:<tspan id="player2-HP">100</tspan></text>
+            </g>
+
+            <text x="480" y="25">
+                <tspan id="time-remaining">70</tspan>
+            </text>
+
+            <text x="465" y="40">
+                <tspan id="player1-score">0</tspan> - <tspan id="player2-score">0</tspan>
+            </text>
+        </svg>
+
+        <!-- Slot Container -->
+        <div id="slot-container">
+            <div id="weapon-slot" class="slot">
+                <p>Weapon</p>
+            </div>
+            <div id="item-slot" class="slot">
+                <p>Item</p>
+            </div>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
     <script>
-    $(function(){
-        const cv = $("canvas").get(0);
-        const ctx = cv.getContext("2d");
-    });
+        $(function () {
+            // Draw arena border on the canvas
+            const cv = $("canvas").get(0);
+            const ctx = cv.getContext("2d");
+            ctx.strokeStyle = "grey";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 75, 1535, 645); // arena dimensions. IMPORTANT.
 
+            $("#weapon-slot").css("border-color", "green"); //User initially is on weapon slot.
+
+            // Key handling for the squares
+            $(document).on("keydown", function (e) {
+                const key = e.key.toLowerCase();
+
+                if (key === "e") {
+                    // Left square becomes green, right resets to grey
+                    $("#weapon-slot").css("border-color", "green");
+                    $("#item-slot").css("border-color", "grey");
+                } else if (key === "f") {
+                    // Right square becomes green, left resets to grey
+                    $("#weapon-slot").css("border-color", "gray");
+                    $("#item-slot").css("border-color", "green");
+                }
+            });
+        });
     </script>
 </body>
 </html>

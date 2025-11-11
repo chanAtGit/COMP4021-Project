@@ -10,4 +10,6 @@ app.get("/serverinfo", (req, res) => {
     res.json({ name: "Node.js Server is active." });
 });
 
-app.listen(8000); //start web server at port 800. IMPORTANT
+app.listen(8000, () => {
+    console.log("The game server has started...");
+}); //start web server at port 800. IMPORTANT
