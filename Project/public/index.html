@@ -76,7 +76,7 @@
 
         #slot-container {
             position: absolute;
-            right: 20px;
+            left: 20px;
             bottom: 20px;
             display: flex;
             gap: 12px;               /* space between the two squares */
@@ -89,6 +89,27 @@
             border-radius: 5%;
             background-color: rgb(255,255,255,0.4);
         }
+
+        #ammo-container {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;      /* stack the <p> and <h3> */
+            justify-content: center;     /* vertical centering */
+            align-items: center;         /* horizontal centering */
+            width: 200px;
+            height: 100px;
+            background-color: rgba(128,128,128,0.8);
+            border-radius: 10%;
+            gap: 12px;               /* space between the ammo label and ammo container */
+        }
+
+        #ammo-counter{
+            color: white; 
+            font-size: 30px;
+        }
+
     </style>
 </head>
 <body>
@@ -122,11 +143,17 @@
         <!-- Slot Container -->
         <div id="slot-container">
             <div id="weapon-slot" class="slot">
-                <p>Weapon</p>
+                <p style = "font-size: 8px;">Weapon (Q)</p>
             </div>
             <div id="item-slot" class="slot">
-                <p>Item</p>
+                <p style = "font-size: 8px;">Item (E)</p>
             </div>
+        </div>
+
+         <!-- Ammo Container -->
+        <div id="ammo-container">
+            <p style = "color: white; font-size: 12px;">AMMO</p>
+            <p id = "ammo-counter">0</p>
         </div>
     </div>
 
@@ -146,11 +173,11 @@
             $(document).on("keydown", function (e) {
                 const key = e.key.toLowerCase();
 
-                if (key === "e") {
+                if (key === "q") {
                     // Left square becomes green, right resets to grey
                     $("#weapon-slot").css("border-color", "green");
                     $("#item-slot").css("border-color", "grey");
-                } else if (key === "f") {
+                } else if (key === "e") {
                     // Right square becomes green, left resets to grey
                     $("#weapon-slot").css("border-color", "gray");
                     $("#item-slot").css("border-color", "green");
