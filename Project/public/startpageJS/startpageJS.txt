@@ -1,0 +1,1 @@
+Put JavaScript files relating to the starting page here, eg. registration and authentication
