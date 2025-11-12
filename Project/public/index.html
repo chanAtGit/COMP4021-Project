@@ -58,10 +58,6 @@
             stroke-width: 1px;
         }
 
-        #time-remaining {
-            font-size: 130%;
-        }
-
         #player1-score {
             fill: red;
             stroke: red;
@@ -131,8 +127,8 @@
                 <text x="910" y="35">P2:<tspan id="player2-HP">100</tspan></text>
             </g>
 
-            <text x="480" y="25">
-                <tspan id="time-remaining">70</tspan>
+            <text x="450" y="25">
+                TIME:<tspan id="time-remaining">70</tspan>
             </text>
 
             <text x="465" y="40">
@@ -158,31 +154,130 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script src="gamepageJS/bounding_box.js"></script>
+    <script src="gamepageJS/sprite.js"></script>
+    <script src="gamepageJS/player.js"></script>
     <script>
         $(function () {
             // Draw arena border on the canvas
             const cv = $("canvas").get(0);
-            const ctx = cv.getContext("2d");
-            ctx.strokeStyle = "grey";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(0, 75, 1535, 645); // arena dimensions. IMPORTANT.
+            const context = cv.getContext("2d");
+
+            const totalRoundTime = 70;   // Total game time in seconds
+            let roundStartTime = 0;      // The timestamp when the game starts
+            let round = 0;
+
+            let mouseX = 0;
+            let mouseY = 0;
+
+            let animationId; // To store the requestAnimationFrame ID
+
+            const gameArea = BoundingBox(context, 120 , 30, 675, 1505);//set gameArea
+
+            /* create sprites */
+            const player1 = Player(context, 427, 240, 1, gameArea); // The player
 
             $("#weapon-slot").css("border-color", "green"); //User initially is on weapon slot.
 
-            // Key handling for the squares
-            $(document).on("keydown", function (e) {
-                const key = e.key.toLowerCase();
+            /* get cursor position */
+            $(document).on('mousemove', function(event) {
+                mouseX = event.pageX;
+                mouseY = event.pageY;
+                console.log("Mouse position: X=" + mouseX + ", Y=" + mouseY);
+            });
 
-                if (key === "q") {
+
+            /* key control */
+            const keys = {}; // Object to keep track of pressed keys
+            // Key handling for the slots and movement
+            $(document).on("keydown", function (e) {
+                if (!e.repeat) { // Optional: ensures the event only fires once per press, not continuously while held
+                    keys[e.key] = true;
+                }
+                //slot handling
+                if (keys['q']) {
                     // Left square becomes green, right resets to grey
                     $("#weapon-slot").css("border-color", "green");
                     $("#item-slot").css("border-color", "grey");
-                } else if (key === "e") {
+                } else if (keys['e']) {
                     // Right square becomes green, left resets to grey
                     $("#weapon-slot").css("border-color", "gray");
                     $("#item-slot").css("border-color", "green");
                 }
             });
+
+            $(document).keyup(function(e) {
+                // Set the key's status to false when it is released
+                delete keys[e.key]; // Deleting the property is efficient
+            });
+
+            function getMovementVector() {
+                let dx = 0, dy = 0;
+                if (keys['w']) dy -= 1;   // north
+                if (keys['s']) dy += 1;   // south
+                if (keys['a']) dx -= 1;   // west
+                if (keys['d']) dx += 1;   // east
+
+                // If both axes are non‑zero we are moving diagonally → normalize
+                if (dx !== 0 && dy !== 0) {
+                    const length = Math.hypot(dx, dy); // √(dx²+dy²) == √2
+                    dx /= length;
+                    dy /= length;
+                }
+                return {dx, dy};
+            }
+
+            /* main processing of the game */
+            function doFrame(now){
+                if (roundStartTime == 0) roundStartTime = now;
+
+                /* Update the time remaining */
+                const roundTimeSoFar = now - roundStartTime;
+                const timeRemaining = Math.ceil((totalRoundTime * 1000 - roundTimeSoFar) / 1000);
+                $("#time-remaining").text(timeRemaining);
+
+                if (timeRemaining == 0){
+                    // Stop the game
+                    cancelAnimationFrame(animationId);
+
+                    // Optional: Show game over message
+                    alert("Time's Up! Game Over");
+
+                    // Remove event listeners to stop interaction
+                    $(document).off("keydown keyup mousemove");
+
+                    return; //change later
+                }
+
+
+                const {dx, dy} = getMovementVector();
+                if (dx !== 0 || dy !== 0) {
+                    // send the vector to the player; you can keep the old
+                    // move(direction) API by translating (dx,dy)→direction,
+                    // but a vector is far more flexible.
+                    player1.setVelocity(dx, dy);
+                } else {
+                    player1.stop();   // no keys pressed → stop
+                }
+
+                //handle player orientation towards mouse/crosshair
+                player1.setAngle(mouseX, mouseY);
+
+                /* update sprites */
+                player1.update(now);
+
+                /* Clear the screen */
+                context.clearRect(0, 0, cv.width, cv.height);
+
+                /* draw the sprites */
+                player1.draw();
+
+                /* Process the next frame */
+                animationId = requestAnimationFrame(doFrame);
+            }
+
+            /* Start the game */
+            animationId = requestAnimationFrame(doFrame);
         });
     </script>
 </body>
