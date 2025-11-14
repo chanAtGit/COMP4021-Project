@@ -26,11 +26,11 @@ app.get("/serverinfo", (req, res) => {
 
 // Handle any GET requests for the path '/'
 app.get("/", (req, res) => {
-    res.sendFile(__dirname + "/public/index.html");
+    res.sendFile(__dirname + "/public/login.html");
 });
 
-app.get("/login", (req, res) => {
-    res.sendFile(__dirname + "/public/login.html");
+app.get("/game", (req, res) => {
+    res.sendFile(__dirname + "/public/game.html");
 });
 
 

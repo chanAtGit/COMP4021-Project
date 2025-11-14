@@ -3,7 +3,7 @@
 // - `x` - The initial x position of the player
 // - `y` - The initial y position of the player
 // - `gameArea` - The bounding box of the game area
-const Player = function(ctx, x, y, id, gameArea) {
+const Player = function(ctx, x, y, id, gameArea, obstacles) {
 
     // This is the sprite sequences of the player facing different directions.
     // It contains the idling sprite sequences `idleLeft`, `idleUp`, `idleRight` and `idleDown`,
@@ -57,7 +57,7 @@ const Player = function(ctx, x, y, id, gameArea) {
     let vy = 0;
 
     // This is the moving speed (pixels per second) of the player
-    let speed = 130;
+    let speed = 120;
 
     // This is the rotation angle (radian) of the player
     let angle = 0;
@@ -86,10 +86,10 @@ const Player = function(ctx, x, y, id, gameArea) {
     };
 
     const speedReset = function() {
-        speed = 150;
+        speed = 120;
     };
 
-    const setAngle = function(mouseX, mouseY) {
+    const setAngle = function(mouseX, mouseY) { //accept mouse x and y coordinates as parameters
         let { x, y } = sprite.getXY();
         const dy = mouseY - y;
         const dx = mouseX - x;
@@ -105,13 +105,28 @@ const Player = function(ctx, x, y, id, gameArea) {
     const update = function(time) {
         /* Update the player if the player is moving */
         let { x, y } = sprite.getXY();
+        let collideWithObstacle = 0;
+
         if (vx != 0 || vy != 0) {
             /* Move the player */
             x += (vx * speed)/60;
             y += (vy * speed)/60;
 
             /* Set the new position if it is within the game area + (TO BE ADDED) not within an obstacle*/ 
-            if (gameArea.isPointInBox(x, y)) sprite.setXY(x, y);
+            if (gameArea.isPointInBox(x, y)){
+                for (let i = 0; i < obstacles.length; i++){
+                    //the player's main body (excluding the arms) is 40px * 40x
+                    const obstacleBox = obstacles[i].getBoundingBox();
+                    if (obstacleBox.isPointInBox(x + 20,y) || obstacleBox.isPointInBox(x - 20,y) 
+                        || obstacleBox.isPointInBox(x,y + 20) || obstacleBox.isPointInBox(x,y-20)){ //iterate over all obstacles to check collision
+                        collideWithObstacle = 1;
+                        break;
+                    }
+                }
+                if (!collideWithObstacle){
+                    sprite.setXY(x, y);
+                }
+            } 
         }
 
         sprite.setRotation(angle);

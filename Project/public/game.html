@@ -157,13 +157,16 @@
     <script src="gamepageJS/bounding_box.js"></script>
     <script src="gamepageJS/sprite.js"></script>
     <script src="gamepageJS/player.js"></script>
+    <script src = "gamepageJS/crate.js"></script>
+    <script src="gamepageJS/weapon.js"></script>
     <script>
         $(function () {
             // Draw arena border on the canvas
             const cv = $("canvas").get(0);
             const context = cv.getContext("2d");
 
-            const totalRoundTime = 70;   // Total game time in seconds
+            let totalRoundTime = 70;   // Total game time in seconds
+            const weaponMaxAge = 20000;   // 20 sec 
             let roundStartTime = 0;      // The timestamp when the game starts
             let round = 0;
 
@@ -172,10 +175,69 @@
 
             let animationId; // To store the requestAnimationFrame ID
 
-            const gameArea = BoundingBox(context, 120 , 30, 675, 1505);//set gameArea
+            const gameArea = BoundingBox(context, 100 , 20, 675, 1516);//set gameArea
+            const left = gameArea.getPoints().topLeft[0]+64-20;
+            const right = gameArea.getPoints().topRight[0]-64+20;
+            const bottom = gameArea.getPoints().bottomLeft[1]-64+25;
+            const top = gameArea.getPoints().topLeft[1]+64-25;
 
             /* create sprites */
-            const player1 = Player(context, 427, 240, 1, gameArea); // The player
+            const obstacles = [ //obstacles
+                //Four corners
+                Crate(context, left, top, 3),
+                Crate(context, right, top, 3),
+                Crate(context, left, bottom, 3),
+                Crate(context, right, bottom, 3),
+
+                //Extra bottom left crate
+                Crate(context, left + 128, bottom, 3),
+                //Extra top right crate
+                Crate(context, right - 128, top, 3),
+
+                //top-left cluster
+                Crate(context, left + 128, top, 2), //larger crates
+                Crate(context, left, top + 128, 2),
+                Crate(context, left, top + 128*2, 2),
+                Crate(context, left + 128*2 - 64/2, top - 64/2, 1), //smaller crates
+                //Crate(context, left + 128 - 64/2, top + 128 - 64/2, 1),
+
+                //bottom-right cluster
+                Crate(context, right - 128, bottom, 2), //larger crates
+                Crate(context, right, bottom - 128, 2), 
+                Crate(context, right, bottom - 128*2, 2), 
+                Crate(context, right - 128*2 + 64/2, bottom + 64/2, 1), //smaller crates
+                //Crate(context, right - 128 + 64/2, bottom - 128 + 64/2, 1),
+
+                //center top
+                Crate(context, (right+left)/2, top - 64/2, 1),
+                Crate(context, (right+left)/2 + 128 - 64/2, top, 2),
+
+                //center bottom
+                Crate(context, (right+left)/2, bottom + 64/2, 1),
+                Crate(context, (right+left)/2 - 128 + 64/2, bottom, 2),
+
+                //center left obstacle
+                Crate(context, (right+left)/4, (top+bottom)/2, 3),
+                Crate(context, (right+left)/4 + 64*3/2, (top+bottom)/2 - 64*3/2, 1),
+
+                 //center right obstacle
+                Crate(context, (right+left)/4*3, (top+bottom)/2, 3),
+                Crate(context, (right+left)/4*3 - 64*3/2, (top+bottom)/2 + 64*3/2, 1)
+            ];
+            const player1 = Player(context, left, top + 128*3, 1, gameArea, obstacles); // The player
+            //const weapon1 = Weapon(context, 427, 350, "AR"); 
+            //const weapon2 = Weapon(context, 427, 350, "AR"); 
+            //const weapon3 = Weapon(context, 427, 350, "AR"); 
+            const weapons = [
+                Weapon(context, 427, 350, "AR"),       // weapon 1
+                Weapon(context, 427, 360, "AR"),       // weapon 2 
+                Weapon(context, 427, 370, "AR")        // weapon 3 
+            ];
+            const points = [         // fixed points for the items, can be changed later 
+                {x: 300, y: 500}, 
+                {x: 750, y: 322}, 
+                {x: 1208, y: 202}
+            ];
 
             $("#weapon-slot").css("border-color", "green"); //User initially is on weapon slot.
 
@@ -236,7 +298,7 @@
                 const timeRemaining = Math.ceil((totalRoundTime * 1000 - roundTimeSoFar) / 1000);
                 $("#time-remaining").text(timeRemaining);
 
-                if (timeRemaining == 0){
+                if (timeRemaining == 0){ //game duration is over
                     // Stop the game
                     cancelAnimationFrame(animationId);
 
@@ -265,17 +327,54 @@
 
                 /* update sprites */
                 player1.update(now);
+                weapons.forEach((weapon) => {
+                    weapon.update(now); 
+                })
+
+                /* Randomize the weapon */
+                weapons.forEach((weapon, index) => {
+                    if (weapon.getAge(now) >= weaponMaxAge) {
+                        weapon.randomize(gameArea); 
+                        weapon.setXY(points[index].x, points[index].y)
+                    }
+                })
+                // for picking up the weapon 
+                /* 
+                const gemPos = gem.getXY(); 
+                if (player.getBoundingBox().isPointInBox(gemPos.x, gemPos.y)) {
+                // play the collect sound 
+                sounds.collect.currentTime = 0;   // play from the start 
+                sounds.collect.play(); 
+
+                collectedGems++; 
+                gem.randomize(gameArea);    // randomize will call setColor which will reset the age 
+                }
+                */
 
                 /* Clear the screen */
                 context.clearRect(0, 0, cv.width, cv.height);
 
                 /* draw the sprites */
+                for (let i = 0; i < obstacles.length; i++){ //obstcales are rendered first
+                    obstacles[i].draw();
+                }
+
+                weapons.forEach((weapon) => {
+                    weapon.draw(); 
+                }) 
+
                 player1.draw();
 
                 /* Process the next frame */
                 animationId = requestAnimationFrame(doFrame);
             }
 
+            // Moving the Weapon at the Start of the Game
+            weapons.forEach((weapon, index) => {
+                weapon.randomize(gameArea);
+                weapon.setXY(points[index].x, points[index].y)
+            })          
+            
             /* Start the game */
             animationId = requestAnimationFrame(doFrame);
         });
