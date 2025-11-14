@@ -1,6 +1,4 @@
-***Game Title: SHOWDOWN***
-**Title of your project** 
-The project's title is “Showdown”, a fast-paced 1v1 multiplayer top-down arena shooter.
+**Game Title: SHOWDOWN**
 
 **Game front page • What will be in it** 
 Game Title
