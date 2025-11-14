@@ -157,6 +157,7 @@
     <script src="gamepageJS/bounding_box.js"></script>
     <script src="gamepageJS/sprite.js"></script>
     <script src="gamepageJS/player.js"></script>
+    <script src="gamepageJS/weapon.js"></script>
     <script>
         $(function () {
             // Draw arena border on the canvas
@@ -164,6 +165,7 @@
             const context = cv.getContext("2d");
 
             const totalRoundTime = 70;   // Total game time in seconds
+            const weaponMaxAge = 20000;   // 20 sec 
             let roundStartTime = 0;      // The timestamp when the game starts
             let round = 0;
 
@@ -176,6 +178,14 @@
 
             /* create sprites */
             const player1 = Player(context, 427, 240, 1, gameArea); // The player
+            //const weapon1 = Weapon(context, 427, 350, "AR"); 
+            //const weapon2 = Weapon(context, 427, 350, "AR"); 
+            //const weapon3 = Weapon(context, 427, 350, "AR"); 
+            const weapons = [
+                Weapon(context, 427, 350, "AR"),
+                Weapon(context, 427, 360, "AR"),
+                Weapon(context, 427, 370, "AR")
+            ];
 
             $("#weapon-slot").css("border-color", "green"); //User initially is on weapon slot.
 
@@ -265,16 +275,47 @@
 
                 /* update sprites */
                 player1.update(now);
+                //weapon1.update(now); 
+                weapons.forEach((weapon) => {
+                    weapon.update(now); 
+                })
+
+                /* Randomize the weapon */
+                weapons.forEach((weapon) => {
+                    if (weapon.getAge(now) >= weaponMaxAge) {
+                        weapon.randomize(gameArea); 
+                    }
+                })
+                // for picking up the weapon 
+                /* 
+                const gemPos = gem.getXY(); 
+                if (player.getBoundingBox().isPointInBox(gemPos.x, gemPos.y)) {
+                // play the collect sound 
+                sounds.collect.currentTime = 0;   // play from the start 
+                sounds.collect.play(); 
+
+                collectedGems++; 
+                gem.randomize(gameArea);    // randomize will call setColor which will reset the age 
+                }
+                */
 
                 /* Clear the screen */
                 context.clearRect(0, 0, cv.width, cv.height);
 
                 /* draw the sprites */
                 player1.draw();
+                weapons.forEach((weapon) => {
+                    weapon.draw(); 
+                }) 
 
                 /* Process the next frame */
                 animationId = requestAnimationFrame(doFrame);
             }
+
+            // Moving the Weapon at the Start of the Game
+            weapons.forEach((weapon) => {
+                weapon.randomize(gameArea);
+            }) 
 
             /* Start the game */
             animationId = requestAnimationFrame(doFrame);
