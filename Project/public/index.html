@@ -182,9 +182,14 @@
             //const weapon2 = Weapon(context, 427, 350, "AR"); 
             //const weapon3 = Weapon(context, 427, 350, "AR"); 
             const weapons = [
-                Weapon(context, 427, 350, "AR"),
-                Weapon(context, 427, 360, "AR"),
-                Weapon(context, 427, 370, "AR")
+                Weapon(context, 427, 350, "AR"),       // weapon 1
+                Weapon(context, 427, 360, "AR"),       // weapon 2 
+                Weapon(context, 427, 370, "AR")        // weapon 3 
+            ];
+            const points = [         // fixed points for the items, can be changed later 
+                {x: 300, y: 500}, 
+                {x: 750, y: 322}, 
+                {x: 1208, y: 202}
             ];
 
             $("#weapon-slot").css("border-color", "green"); //User initially is on weapon slot.
@@ -275,15 +280,15 @@
 
                 /* update sprites */
                 player1.update(now);
-                //weapon1.update(now); 
                 weapons.forEach((weapon) => {
                     weapon.update(now); 
                 })
 
                 /* Randomize the weapon */
-                weapons.forEach((weapon) => {
+                weapons.forEach((weapon, index) => {
                     if (weapon.getAge(now) >= weaponMaxAge) {
                         weapon.randomize(gameArea); 
+                        weapon.setXY(points[index].x, points[index].y)
                     }
                 })
                 // for picking up the weapon 
@@ -313,10 +318,11 @@
             }
 
             // Moving the Weapon at the Start of the Game
-            weapons.forEach((weapon) => {
+            weapons.forEach((weapon, index) => {
                 weapon.randomize(gameArea);
-            }) 
-
+                weapon.setXY(points[index].x, points[index].y)
+            })          
+            
             /* Start the game */
             animationId = requestAnimationFrame(doFrame);
         });

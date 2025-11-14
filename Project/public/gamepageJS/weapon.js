@@ -45,10 +45,6 @@ const Weapon = function(ctx, x, y, weaponType) {
         /* Randomize the type */
         const types = ["AR", "SMG", "shotgun"];
         setWeaponType(types[Math.floor(Math.random() * 3)]);
-
-        /* Randomize the position */
-        const {x, y} = area.randomPoint();
-        sprite.setXY(x, y);
     };
 
     // The methods are returned as an object here.
