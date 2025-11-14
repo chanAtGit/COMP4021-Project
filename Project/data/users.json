@@ -3,5 +3,10 @@
       "avatar": "Hamster",
       "name": "supernova",
       "password": "$2b$10$dnORmGzafh7P6rNgXKwUyu2aMcfNX0VuUZbTfxHg1J8xlmobth8Om"
+   },
+   "Clinton": {
+      "avatar": "Dragon",
+      "name": "Clinton",
+      "password": "$2b$10$G8mktZpyno02Quswkm8oteB94LWePOkX0GBYhP4NVujFOpIdrIhNu"
    }
 }
