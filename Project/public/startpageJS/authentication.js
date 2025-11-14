@@ -45,6 +45,14 @@ const Authentication = (function() {
     };
     const signout = function(onSuccess, onError) {
         fetch("/signout")
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                user = null;
+                onSuccess();
+            }
+            else if (onError) onError(data.error);
+        });
     };
 
     return { getUser, signin, validate, signout };

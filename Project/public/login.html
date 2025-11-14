@@ -19,7 +19,7 @@
             background-color: black;
             box-sizing: border-box;
             font-family: "Press Start 2P", sans-serif;
-            font-size: 11px;
+            font-size: 9px;
             cursor: url(assets/crosshair.png) 21 21, auto;
         }
     </style>
@@ -82,6 +82,47 @@
                     <button type="submit">Register</button>
                     <div id="register-message" class="warning center"></div>
                 </form>
+            </div>
+        </div>
+
+        <div id="container" class="col">
+            <div id="header" class="row">
+                <div id="user-panel" class="row">
+                    <button style="margin-right: 20px; border-radius: 20px;">Pair Up</button>
+                    <div class="field-content row shadow" style="margin-right: 0px;">
+                        <span class="user-avatar"></span>
+                        <span class="user-name">-</span>
+                    </div>
+                    <button id="signout-button" class="icon"><span class="material-icons">logout</span></button>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding-left: 20%; padding-right: 20%;">
+            <h3 style="color: white; text-align: center;">Player Instructions</h3>
+            <div style = "text-align: left; padding-bottom: 20px;">
+                <section>
+                    <img src="assets/arena_sample.png" style="width: 100%; height: auto;">
+                    <h4 style="color: white;">Game Rules</h4>
+                    <p style="color: white;">The game consists of 3 rounds and each lasting up to 70 seconds. A player wins a round by depleting their opponent&#39;s HP. If the round ends with neither player dying, the player with a higher HP wins. A player wins the game by winning 2 out of 3 rounds.</p>
+                </section>
+                <br>
+                <section>
+                    <h4 style="color: white;">Sudden Death</h4>
+                    <p style="color: white;">The game will enter a sudden-death mode if a round reaches its last 15 seconds. By then, all obstacles will disappear, and the players will deal double the normal damage.</p>
+                </section>
+                <br>
+                <section>
+                    <h4 style="color: white;">Weapons & Potions</h4>
+                    <p style="color: white;">Random weapons and potions appear at fixed points in the arena for the players to collect. Only a maximum of 3 uncollected items are allowed on the arena and will be refreshed every 20 seconds if they are collected.</p>
+                </section>
+                <br>
+                <section style="color: white;">
+                    <img src="assets/player_sample.png" style="width: 20%; height: auto;">
+                    <h4 style="color: white;">User Controls</h4>
+                    <p style="color: white;">WASD keys control the players&#39; movements, and their avatar faces towards their cursor. &#39;Q&#39; and &#39;E&#39; are used to select the player's weapon and item slot, respectively. Holding the mouse&#39;s left key fires the player&#39;s weapon or consumes their potion. The &#39;F&#39; key is used to collect items.</p>
+                </section>
+                
             </div>
         </div>
 
