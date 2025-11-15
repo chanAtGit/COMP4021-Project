@@ -8,5 +8,10 @@
       "avatar": "Dragon",
       "name": "Clinton",
       "password": "$2b$10$G8mktZpyno02Quswkm8oteB94LWePOkX0GBYhP4NVujFOpIdrIhNu"
+   },
+   "Ivan": {
+      "avatar": "Chicken",
+      "name": "Ivan",
+      "password": "$2b$10$lZdtQvU/pc34ZfbrTrhlm.Phzs6HWXARqfd4xGtEwR3vvEX2QBJ3q"
    }
 }

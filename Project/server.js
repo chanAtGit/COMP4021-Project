@@ -81,8 +81,9 @@ app.post("/signin", (req, res) => {
         return res.json({ status: "error", error: "Invalid password." });
     }
 
-    req.session.user = username;
-    return res.json({ status: "success", user: { username: username, avatar: users[username].avatar, name: users[username].name } });
+    const returned_user =  {username: username, avatar: users[username].avatar, name: users[username].name};
+    req.session.user = returned_user; //set req.session.user to object
+    return res.json({ status: "success", user: returned_user});
     
 });
 
@@ -92,14 +93,16 @@ app.get("/validate", (req, res) => {
     //
     // B. Getting req.session.user
     //
-    const user = req.session.user;
-    const userAccount = user ? req.body.user : null;
-    if (!userAccount) {
-        return res.json({status: "error", error: "User is not signed in."});
+    if (req.session.user == null){ //if req.session.user is undefined
+        res.json({ status: "error", error: "User account does not exist" });
+        console.log("User not found.");
+        return;
     }
-    else {
-        return res.json({ status: "success", user: userAccount });
-    }
+    //console.log(req.session.user);
+    //
+    // D. Sending a success response with the user account
+    //
+    res.json({ status: "success", user: req.session.user });
     //
 });
 

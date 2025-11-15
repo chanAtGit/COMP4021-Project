@@ -35,12 +35,13 @@ const Authentication = (function() {
     const validate = function(onSuccess, onError) {
 
         fetch("/validate")
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === "success") {
+        .then((res) => res.json() )
+        .then((json) => {
+            if (json.status === "success") {
+                user = json.user; //double check
                 onSuccess();
             }
-            else if (onError) onError(data.error);
+            else if (onError) onError(json.error);
         })
     };
     const signout = function(onSuccess, onError) {
