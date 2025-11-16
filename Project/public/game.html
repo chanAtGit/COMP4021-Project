@@ -157,8 +157,9 @@
     <script src="gamepageJS/bounding_box.js"></script>
     <script src="gamepageJS/sprite.js"></script>
     <script src="gamepageJS/player.js"></script>
-    <script src = "gamepageJS/crate.js"></script>
+    <script src="gamepageJS/crate.js"></script>
     <script src="gamepageJS/weapon.js"></script>
+    <script src="gamepageJS/potion.js"></script>
     <script>
         $(function () {
             // Draw arena border on the canvas
@@ -166,7 +167,7 @@
             const context = cv.getContext("2d");
 
             let totalRoundTime = 70;   // Total game time in seconds
-            const weaponMaxAge = 20000;   // 20 sec 
+            const itemMaxAge = 20000;   // 20 sec 
             let roundStartTime = 0;      // The timestamp when the game starts
             let round = 0;
 
@@ -180,6 +181,11 @@
             const right = gameArea.getPoints().topRight[0]-64+20;
             const bottom = gameArea.getPoints().bottomLeft[1]-64+25;
             const top = gameArea.getPoints().topLeft[1]+64-25;
+
+            /* Create the sounds */
+            const sounds = {
+                weaponPickup: new Audio("assets/weapon_pickup.mp3")
+            };
 
             /* create sprites */
             const obstacles = [ //obstacles
@@ -229,14 +235,23 @@
             //const weapon2 = Weapon(context, 427, 350, "AR"); 
             //const weapon3 = Weapon(context, 427, 350, "AR"); 
             const weapons = [
-                Weapon(context, 427, 350, "AR"),       // weapon 1
+                Weapon(context, 427, 350, "AR"),       // weapon 1       
                 Weapon(context, 427, 360, "AR"),       // weapon 2 
                 Weapon(context, 427, 370, "AR")        // weapon 3 
             ];
-            const points = [         // fixed points for the items, can be changed later 
-                {x: 300, y: 500}, 
-                {x: 750, y: 322}, 
-                {x: 1208, y: 202}
+            const potions = [
+                Potion(context, 427, 350, "green"),    // potion 1
+                Potion(context, 427, 350, "green")     // potion 2 
+            ];
+            // fixed points for the items, can be changed later
+            const weaponPoints = [          
+                {x: 450, y: 620}, 
+                {x: 760, y: 380}, 
+                {x: 1100, y: 160}
+            ];
+            const potionPoints = [
+                {x: 480, y: 160}, 
+                {x: 1050, y: 620}
             ];
 
             $("#weapon-slot").css("border-color", "green"); //User initially is on weapon slot.
@@ -329,16 +344,60 @@
                 player1.update(now);
                 weapons.forEach((weapon) => {
                     weapon.update(now); 
-                })
+                });
+                potions.forEach((potion) => {
+                    potion.update(now);
+                });
 
                 /* Randomize the weapon */
                 weapons.forEach((weapon, index) => {
-                    if (weapon.getAge(now) >= weaponMaxAge) {
-                        weapon.randomize(gameArea); 
-                        weapon.setXY(points[index].x, points[index].y)
+                    if (weapon.getAge(now) >= itemMaxAge) {
+                        weapon.randomize(); 
+                        weapon.setXY(weaponPoints[index].x, weaponPoints[index].y); 
                     }
-                })
+                });
+                /* Randomize the potion */
+                potions.forEach((potion, index) => {
+                    if (potion.getAge(now) >= itemMaxAge) {
+                        potion.randomize(); 
+                        potion.setXY(potionPoints[index].x, potionPoints[index].y); 
+                    }
+                });
+
                 // for picking up the weapon 
+                $(document).on("keydown", function(event) {
+                    if (event.keyCode == 32) {  // now the pick up button is Spacebar, can be changed later 
+                        weapons.forEach((weapon, index) => {
+                            const weaponPos = weapon.getXY();
+                            if (player1.getBoundingBox().isPointInBox(weaponPos.x, weaponPos.y)) {
+                                // Play collect sound
+                                sounds.weaponPickup.currentTime = 0;     // play from the start 
+                                sounds.weaponPickup.play(); 
+
+                                weapon.randomize(gameArea);
+                                weapon.setXY(-1000, -1000);
+                                // Respawn after 2 seconds
+                                setTimeout(() => {
+                                    weapon.setXY(weaponPoints[index].x, weaponPoints[index].y);
+                                }, 2000);
+                            }
+                        });
+                    }
+                });
+
+
+                /* 
+                const gemPos = gem.getXY(); 
+                if (player.getBoundingBox().isPointInBox(gemPos.x, gemPos.y)) {
+                // play the collect sound 
+                sounds.collect.currentTime = 0;   // play from the start 
+                sounds.collect.play(); 
+
+                collectedGems++; 
+                gem.randomize(gameArea);    // randomize will call setColor which will reset the age 
+                }
+                */
+                // for picking up the potion 
                 /* 
                 const gemPos = gem.getXY(); 
                 if (player.getBoundingBox().isPointInBox(gemPos.x, gemPos.y)) {
@@ -363,16 +422,24 @@
                     weapon.draw(); 
                 }) 
 
+                potions.forEach((potion) => {
+                    potion.draw(); 
+                })
+
                 player1.draw();
 
                 /* Process the next frame */
                 animationId = requestAnimationFrame(doFrame);
             }
 
-            // Moving the Weapon at the Start of the Game
+            // Moving the Weapon + Potion at the Start of the Game
             weapons.forEach((weapon, index) => {
-                weapon.randomize(gameArea);
-                weapon.setXY(points[index].x, points[index].y)
+                weapon.randomize();
+                weapon.setXY(weaponPoints[index].x, weaponPoints[index].y);
+            }) 
+            potions.forEach((potion, index) => {
+                potion.randomize();
+                potion.setXY(potionPoints[index].x, potionPoints[index].y);
             })          
             
             /* Start the game */

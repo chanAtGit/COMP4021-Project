@@ -1,7 +1,7 @@
 // This function defines the Weapon module.
 // - `ctx` - A canvas context for drawing
 // - `x` - The initial x position of the weapon
-// - `y` - The initial y position of the weapon
+// - `y` - The initial y position of the weapon 
 
 const Weapon = function(ctx, x, y, weaponType) {
 
@@ -18,7 +18,7 @@ const Weapon = function(ctx, x, y, weaponType) {
 
     // The sprite object is configured for the gem sprite here.
     sprite.setSequence(sequences[weaponType])
-          .setScale(2.5)
+          .setScale(3)
           .setShadowScale({ x: 0.4, y: 0.4 })
           .useSheet("assets/weapon_sprites.png");
 
@@ -39,9 +39,8 @@ const Weapon = function(ctx, x, y, weaponType) {
         return now - birthTime;
     };
 
-    // This function randomizes the weapon type and position.
-    // - `area` - The area that the gem should be located in.
-    const randomize = function(area) {
+    // This function randomizes the weapon type.
+    const randomize = function() {
         /* Randomize the type */
         const types = ["AR", "SMG", "shotgun"];
         setWeaponType(types[Math.floor(Math.random() * 3)]);
