@@ -231,9 +231,8 @@
                 Crate(context, (right+left)/4*3 - 64*3/2, (top+bottom)/2 + 64*3/2, 1)
             ];
             const player1 = Player(context, left, top + 128*3, 1, gameArea, obstacles); // The player
-            //const weapon1 = Weapon(context, 427, 350, "AR"); 
-            //const weapon2 = Weapon(context, 427, 350, "AR"); 
-            //const weapon3 = Weapon(context, 427, 350, "AR"); 
+            const player2 = Player(context, right, bottom - 128*3, 2, gameArea, obstacles); // The player
+
             const weapons = [
                 Weapon(context, 427, 350, "AR"),       // weapon 1       
                 Weapon(context, 427, 360, "AR"),       // weapon 2 
@@ -385,31 +384,6 @@
                     }
                 });
 
-
-                /* 
-                const gemPos = gem.getXY(); 
-                if (player.getBoundingBox().isPointInBox(gemPos.x, gemPos.y)) {
-                // play the collect sound 
-                sounds.collect.currentTime = 0;   // play from the start 
-                sounds.collect.play(); 
-
-                collectedGems++; 
-                gem.randomize(gameArea);    // randomize will call setColor which will reset the age 
-                }
-                */
-                // for picking up the potion 
-                /* 
-                const gemPos = gem.getXY(); 
-                if (player.getBoundingBox().isPointInBox(gemPos.x, gemPos.y)) {
-                // play the collect sound 
-                sounds.collect.currentTime = 0;   // play from the start 
-                sounds.collect.play(); 
-
-                collectedGems++; 
-                gem.randomize(gameArea);    // randomize will call setColor which will reset the age 
-                }
-                */
-
                 /* Clear the screen */
                 context.clearRect(0, 0, cv.width, cv.height);
 
@@ -427,6 +401,8 @@
                 })
 
                 player1.draw();
+
+                player2.draw();
 
                 /* Process the next frame */
                 animationId = requestAnimationFrame(doFrame);

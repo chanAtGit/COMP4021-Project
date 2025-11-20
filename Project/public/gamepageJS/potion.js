@@ -18,7 +18,7 @@ const Potion = function(ctx, x, y, potionType) {
 
     // The sprite object is configured for the gem sprite here.
     sprite.setSequence(sequences[potionType])
-          .setScale(4)
+          .setScale(3)
           .setShadowScale({ x: 0.4, y: 0.4 })
           .useSheet("assets/potions_sprites.png");
 

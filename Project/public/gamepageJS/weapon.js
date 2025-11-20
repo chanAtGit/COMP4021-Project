@@ -18,7 +18,7 @@ const Weapon = function(ctx, x, y, weaponType) {
 
     // The sprite object is configured for the gem sprite here.
     sprite.setSequence(sequences[weaponType])
-          .setScale(3)
+          .setScale(2)
           .setShadowScale({ x: 0.4, y: 0.4 })
           .useSheet("assets/weapon_sprites.png");
 
