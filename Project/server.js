@@ -1,9 +1,14 @@
 const express = require("express"); // import express.js
+const {createServer} = require("http");
+const {Server} = require("socket.io");
+
 const fs = require("fs");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
 
 const app = express(); //initialise express application
+const httpServer = createServer(app);
+const io = new Server(httpServer);
 
 // Use the 'public' folder to serve static files
 app.use(express.static("public"));
@@ -18,6 +23,8 @@ const chatSession = session({
     cookie: { maxAge: 300000 }
 });
 app.use(chatSession);
+
+const onlineUsers = {}; //store online players
 
 // Handle any GET requests for the path '/serverinfo'
 app.get("/serverinfo", (req, res) => {
@@ -108,11 +115,48 @@ app.get("/validate", (req, res) => {
 
 // Handle the /signout endpoint
 app.get("/signout", (req, res) => {
-
     req.session.user = null;
     return res.json({ status: "success"});
 });
 
-app.listen(8000, () => {
+//-----------------WEBSOCKET SECTION-----------------------//
+io.use((socket, next) => {
+    chatSession(socket.request, {}, next);
+});
+
+io.on("connection", (socket) => {
+    // Add a new user to the online user list
+    const current_user = socket.request.session.user; //get socket user
+    if (current_user != null){ //validation is good!
+        onlineUsers[current_user.username] = {avatar: current_user.avatar, name: current_user.name}; //add to onlineUsers
+        //io.emit("add user", JSON.stringify(current_user)); //broadcast to every client, so their online user panel will all show the new user
+    }
+    //console.log(onlineUsers);
+
+    socket.on("disconnect", () => { //if a user's socket disconnects
+        delete onlineUsers[current_user.username]; //delete from onlineUsers
+        //io.emit("remove user", JSON.stringify(current_user));
+        io.emit("remove user", JSON.stringify(onlineUsers));
+        //console.log(onlineUsers);
+    });
+
+    socket.on("get users", ()=>{
+        io.emit("users", JSON.stringify(onlineUsers)); //send onlineUsers back to browser. broadcast to everyone so they can who are connected.
+        //console.log("user list sent");
+    });
+
+    socket.on("get gamepage", ()=>{
+        io.emit("load gamepage"); //send message to all players to load gamepage
+    });
+
+    socket.on("post playerMove", (dx,dy,mouseX,mouseY)=> {
+        const usernames = Object.keys(onlineUsers); //get the usernames, which are the keys
+        const player_index = usernames.indexOf(current_user.username) + 1; // get which player (0 or 1) => (P1 or P2) is the user
+        io.emit("update playerMove", dx,dy,mouseX,mouseY,player_index); //broadcast to all players to update each player's movements
+    });
+});
+
+//-----------------WEBSOCKET SECTION END-------------------//
+httpServer.listen(8000, () => {
     console.log("The game server has started...");
 }); //start web server at port 8000. IMPORTANT

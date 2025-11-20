@@ -111,6 +111,7 @@
 <body>
     <!-- Gameplay Page -->
     <div id="gameplay-page" class = "pages">
+        <p id = "connected-users"></p>
         <canvas width="1536px" height="695px"></canvas>
 
         <svg xmlns="http://www.w3.org/2000/svg" id="upperUI" viewBox="0 0 1000 50">
@@ -154,15 +155,21 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script src="/socket.io/socket.io.min.js"></script>
+    <script src="startpageJS/socket.js"></script>
+
     <script src="gamepageJS/bounding_box.js"></script>
     <script src="gamepageJS/sprite.js"></script>
     <script src="gamepageJS/player.js"></script>
     <script src="gamepageJS/crate.js"></script>
     <script src="gamepageJS/weapon.js"></script>
     <script src="gamepageJS/potion.js"></script>
+    
     <script>
         $(function () {
             // Draw arena border on the canvas
+            Socket.connect();
+
             const cv = $("canvas").get(0);
             const context = cv.getContext("2d");
 
@@ -230,9 +237,9 @@
                 Crate(context, (right+left)/4*3, (top+bottom)/2, 3),
                 Crate(context, (right+left)/4*3 - 64*3/2, (top+bottom)/2 + 64*3/2, 1)
             ];
-            const player1 = Player(context, left, top + 128*3, 1, gameArea, obstacles); // The player
-            const player2 = Player(context, right, bottom - 128*3, 2, gameArea, obstacles); // The player
-
+            const player1 = Player(context, left, top + 128*3, 1, gameArea, obstacles); // The player 1
+            //const player2 = Player(context, right, bottom - 128*3, 2, gameArea, obstacles); // The player 2 - game location
+            const player2 = Player(context, left + 200, bottom - 128*3, 2, gameArea, obstacles); // The player 2 - test location
             const weapons = [
                 Weapon(context, 427, 350, "AR"),       // weapon 1       
                 Weapon(context, 427, 360, "AR"),       // weapon 2 
@@ -259,7 +266,7 @@
             $(document).on('mousemove', function(event) {
                 mouseX = event.pageX;
                 mouseY = event.pageY;
-                console.log("Mouse position: X=" + mouseX + ", Y=" + mouseY);
+                //console.log("Mouse position: X=" + mouseX + ", Y=" + mouseY);
             });
 
 
@@ -275,10 +282,14 @@
                     // Left square becomes green, right resets to grey
                     $("#weapon-slot").css("border-color", "green");
                     $("#item-slot").css("border-color", "grey");
+
+                    //send event ("equip weapon") to websocket
                 } else if (keys['e']) {
                     // Right square becomes green, left resets to grey
                     $("#weapon-slot").css("border-color", "gray");
                     $("#item-slot").css("border-color", "green");
+
+                    //send event ("equip item") to websocket
                 }
             });
 
@@ -302,6 +313,25 @@
                 }
                 return {dx, dy};
             }
+
+            // Global functions that socket.js can call
+            window.updatePlayerMovement = function(dx, dy, mouseX, mouseY, playerIndex) {
+                if (playerIndex === 1 && player1) {
+                    if (dx !== 0 || dy !== 0) {
+                        player1.setVelocity(dx, dy);
+                    } else {
+                        player1.stop();
+                    }
+                    player1.setAngle(mouseX, mouseY);
+                } else if (playerIndex === 2 && player2) {
+                    if (dx !== 0 || dy !== 0) {
+                        player2.setVelocity(dx, dy);
+                    } else {
+                        player2.stop();
+                    }
+                    player2.setAngle(mouseX, mouseY);
+                }
+            };
 
             /* main processing of the game */
             function doFrame(now){
@@ -327,6 +357,8 @@
 
 
                 const {dx, dy} = getMovementVector();
+
+                /*
                 if (dx !== 0 || dy !== 0) {
                     // send the vector to the player; you can keep the old
                     // move(direction) API by translating (dx,dy)→direction,
@@ -338,9 +370,14 @@
 
                 //handle player orientation towards mouse/crosshair
                 player1.setAngle(mouseX, mouseY);
+                */
+
+                //add web socket function here
+                Socket.handlePlayerMovement(dx,dy,mouseX,mouseY);
 
                 /* update sprites */
                 player1.update(now);
+                player2.update(now);
                 weapons.forEach((weapon) => {
                     weapon.update(now); 
                 });

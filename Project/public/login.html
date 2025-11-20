@@ -34,15 +34,23 @@
                     SignInForm.hide();
                     UserPanel.update(Authentication.getUser());
                     UserPanel.show();
+
+                    Socket.connect();
                 },
                 () => { SignInForm.show(); }
             );
+
+            $("#play-btn").click(()=>{
+                Socket.beginGame(); //only need one player to press on the button to start game
+            });
         });
         </script>
+    <script src="/socket.io/socket.io.min.js"></script>
     <script src="startpageJS/ui.js"></script>
     <script src="startpageJS/registration.js"></script>
     <script src="startpageJS/avatar.js"></script>
     <script src="startpageJS/authentication.js"></script>
+    <script src="startpageJS/socket.js"></script>
     <link rel="stylesheet" href="loginstyle.css">
 </head>
 
@@ -50,7 +58,9 @@
 <body>
     <div id = "background">
         <div id = "title_div">
-            <h1 id = "title" style = "text-align: center; margin: 20px;">Showdown</h1>
+            <h1 id = "title" style = "text-align: center; margin: 20px;">
+                <span style="color: red;">Show</span><span style="color: blue;">down</span>
+            </h1>
         </div>
 
         <div id="signin-overlay" class="overlay row">
@@ -86,11 +96,12 @@
         </div>
 
         <div id="container" class="col">
+            <p style = "color: white;">Players Connected: <span id="connected-users" style = "color: white;">None</span></p> 
             <div id="header" class="row">
                 <div id="user-panel" class="row">
-                    <a href="game.html">
-                        <button style="margin-right: 20px; border-radius: 20px;">Pair Up</button>
-                    </a>
+
+                    <button id = "play-btn" style="margin-right: 20px; border-radius: 20px;">Play</button>
+
                     <div class="field-content row shadow" style="margin-right: 0px;">
                         <span class="user-avatar"></span>
                         <span class="user-name">-</span>

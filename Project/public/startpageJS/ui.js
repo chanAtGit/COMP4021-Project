@@ -22,6 +22,8 @@ const SignInForm = (function() {
                     hide();
                     UserPanel.update(Authentication.getUser());
                     UserPanel.show();
+
+                    Socket.connect();
                 },
                 (error) => { $("#signin-message").text(error); }
             );
@@ -83,6 +85,8 @@ const UserPanel = (function() {
             // Send a signout request
             Authentication.signout(
                 () => {
+                    Socket.disconnect();
+
                     hide();
                     SignInForm.show();
                 }
