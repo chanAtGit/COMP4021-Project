@@ -298,6 +298,27 @@
                 delete keys[e.key]; // Deleting the property is efficient
             });
 
+            //weapon pick up
+            $(document).on("keydown", function(event) { 
+                    if (event.keyCode == 70) {  // now the pick up button is F, can be changed later 
+                        weapons.forEach((weapon, index) => {
+                            const weaponPos = weapon.getXY();
+                            if (player1.getBoundingBox().isPointInBox(weaponPos.x, weaponPos.y)) {
+                                // Play collect sound
+                                sounds.weaponPickup.currentTime = 0;     // play from the start 
+                                sounds.weaponPickup.play(); 
+
+                                weapon.randomize(gameArea);
+                                weapon.setXY(-1000, -1000);
+                                // Respawn after 10 seconds
+                                setTimeout(() => {
+                                    weapon.setXY(weaponPoints[index].x, weaponPoints[index].y);
+                                }, 10000);
+                            }
+                        });
+                    }
+                });
+
             function getMovementVector() {
                 let dx = 0, dy = 0;
                 if (keys['w']) dy -= 1;   // north
@@ -342,7 +363,7 @@
                 const timeRemaining = Math.ceil((totalRoundTime * 1000 - roundTimeSoFar) / 1000);
                 $("#time-remaining").text(timeRemaining);
 
-                if (timeRemaining == 0){ //game duration is over
+                if (timeRemaining <= 0){ //game duration is over
                     // Stop the game
                     cancelAnimationFrame(animationId);
 
@@ -397,27 +418,6 @@
                     if (potion.getAge(now) >= itemMaxAge) {
                         potion.randomize(); 
                         potion.setXY(potionPoints[index].x, potionPoints[index].y); 
-                    }
-                });
-
-                // for picking up the weapon 
-                $(document).on("keydown", function(event) {
-                    if (event.keyCode == 32) {  // now the pick up button is Spacebar, can be changed later 
-                        weapons.forEach((weapon, index) => {
-                            const weaponPos = weapon.getXY();
-                            if (player1.getBoundingBox().isPointInBox(weaponPos.x, weaponPos.y)) {
-                                // Play collect sound
-                                sounds.weaponPickup.currentTime = 0;     // play from the start 
-                                sounds.weaponPickup.play(); 
-
-                                weapon.randomize(gameArea);
-                                weapon.setXY(-1000, -1000);
-                                // Respawn after 2 seconds
-                                setTimeout(() => {
-                                    weapon.setXY(weaponPoints[index].x, weaponPoints[index].y);
-                                }, 2000);
-                            }
-                        });
                     }
                 });
 
