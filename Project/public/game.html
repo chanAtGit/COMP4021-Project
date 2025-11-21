@@ -80,6 +80,20 @@
             display: none;
         }
 
+        .round-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            pointer-events: none;
+            display: block;
+        }
+
         #slot-container {
             position: absolute;
             left: 20px;
@@ -149,6 +163,9 @@
             </text>
         </svg>
 
+        <!-- Round Text -->
+        <div class="round-text">ROUND 1</div>
+
         <!-- Slot Container -->
         <div id="slot-container">
             <div id="weapon-slot" class="slot">
@@ -186,10 +203,11 @@
             const cv = $("canvas").get(0);
             const context = cv.getContext("2d");
 
-            let totalRoundTime = 70;   // Total game time in seconds
+            let gameActive = false; //whether game is active or not. decides whether the player can interact yet.
+            const totalRoundTime = 70;   // Total game time in seconds. originally 70
             const itemMaxAge = 20000;   // 20 sec 
             let roundStartTime = 0;      // The timestamp when the game starts
-            let round = 0;
+            let round_num = 1;
 
             let mouseX = 0;
             let mouseY = 0;
@@ -252,7 +270,7 @@
             ];
 
             const p1_init_pos = {x: left, y: top + 128*3};
-            //const player2_init_pos = {x: right, y: bottom - 128*3};
+            //const player2_init_pos = {x: right, y: bottom - 128*3}; //true initial location
             const p2_init_pos = {x: left+200, y: bottom - 128*3}; //test initial location
             const player1 = Player(context, p1_init_pos.x, p1_init_pos.y, 1, gameArea, obstacles); // The player 1
             const player2 = Player(context, p2_init_pos.x, p2_init_pos.y, 2, gameArea, obstacles); // The player 2 - test location
@@ -291,22 +309,24 @@
             const keys = {}; // Object to keep track of pressed keys
             // Key handling for the slots and movement
             $(document).on("keydown", function (e) {
-                if (!e.repeat) { // Optional: ensures the event only fires once per press, not continuously while held
-                    keys[e.key] = true;
-                }
-                //slot handling
-                if (keys['q']) {
+                if (gameActive){
+                    if (!e.repeat) { // Optional: ensures the event only fires once per press, not continuously while held
+                        keys[e.key] = true;
+                    }
+                    //slot handling
+                    if (keys['q']) {
                     // Left square becomes green, right resets to grey
-                    $("#weapon-slot").css("border-color", "green");
-                    $("#item-slot").css("border-color", "grey");
+                        $("#weapon-slot").css("border-color", "green");
+                        $("#item-slot").css("border-color", "grey");
 
                     //send event ("equip weapon") to websocket
-                } else if (keys['e']) {
-                    // Right square becomes green, left resets to grey
-                    $("#weapon-slot").css("border-color", "gray");
-                    $("#item-slot").css("border-color", "green");
+                    } else if (keys['e']) {
+                        // Right square becomes green, left resets to grey
+                        $("#weapon-slot").css("border-color", "gray");
+                        $("#item-slot").css("border-color", "green");
 
-                    //send event ("equip item") to websocket
+                        //send event ("equip item") to websocket
+                    }
                 }
             });
 
@@ -317,6 +337,7 @@
 
             //weapon pick up
             $(document).on("keydown", function(event) { 
+                if (gameActive){
                     if (event.keyCode == 70) {  // now the pick up button is F, can be changed later 
                         weapons.forEach((weapon, index) => {
                             const weaponPos = weapon.getXY();
@@ -334,7 +355,8 @@
                             }
                         });
                     }
-                });
+                }
+            });
 
             function getMovementVector() {
                 let dx = 0, dy = 0;
@@ -371,6 +393,31 @@
                 }
             };
 
+            function revertPlayersPos(){
+                player1.stop(); 
+                player2.stop();
+                player1.setXY(p1_init_pos.x, p1_init_pos.y);
+                player2.setXY(p2_init_pos.x, p2_init_pos.y);
+                //add function to return every player to their original state (position, sprite, health, potion effect, no weapons or items)
+            }
+
+            let countdown = 3;
+            function handleRoundStart(){ //handle round screen
+                countdown--;
+                if (countdown > 0){ //countdown not yet 0
+                    if (countdown == 1){
+                        $(".round-text").text("FIGHT!");
+                    }
+                    setTimeout(handleRoundStart, 1000);
+                } else { //countdown at 0. 
+                    round_num++;
+                    countdown = 3; //reset countdown
+                    $(".round-text").text("ROUND "+round_num);
+                    $(".round-text").hide();
+                    gameActive = true;
+                }
+            }
+
             //Get Player Id
             setTimeout(() => { //wait for connection to be fully established
                 console.log('Attempting getPlayerNum');
@@ -378,37 +425,53 @@
                 setTimeout(()=> {
                     console.log("You are Player "+ playerId);
                     if (playerId == 1){
-                        $("#p1-indicator").show();
+                        $("#p1-indicator").show(); //show player1 indicator
                     } else if (playerId == 2){
-                        $("#p2-indicator").show();
+                        $("#p2-indicator").show(); //show player2 indicator
                     }
                 }, 100); //wait till the commmunication finishes
             }, 100); //wait till connection with server
 
+
+
             /* main processing of the game */
             function doFrame(now){
-                if (roundStartTime == 0) roundStartTime = now;
 
-                /* Update the time remaining */
-                const roundTimeSoFar = now - roundStartTime;
-                const timeRemaining = Math.ceil((totalRoundTime * 1000 - roundTimeSoFar) / 1000);
-                $("#time-remaining").text(timeRemaining);
+                /* Update the time remaining (if game is active) */
+                if (gameActive){
+                    if (roundStartTime == 0) roundStartTime = now;
 
-                if (timeRemaining <= 0){ //game duration is over
-                    // Stop the game
-                    cancelAnimationFrame(animationId);
+                    const roundTimeSoFar = now - roundStartTime;
+                    const timeRemaining = Math.ceil((totalRoundTime * 1000 - roundTimeSoFar) / 1000);
+                    $("#time-remaining").text(timeRemaining);
 
-                    // Optional: Show game over message
-                    alert("Time's Up! Game Over");
+                    if (timeRemaining <= 0){ //game duration is over
+                        if (round_num <= 3){ //not final round
+                            roundStartTime = 0; //reset roundStartTime
+                            gameActive = false;
+                            $("#time-remaining").text(totalRoundTime);
+                            $(".round-text").show(); //show round-text
+                            revertPlayersPos();
+                            setTimeout(handleRoundStart, 1000);
+                        } else {
+                            // Stop the game
+                            cancelAnimationFrame(animationId);
 
-                    // Remove event listeners to stop interaction
-                    $(document).off("keydown keyup mousemove");
+                            // Optional: Show game over message
+                            alert("Time's Up! Game Over");
 
-                    return; //change later
+                            // Remove event listeners to stop interaction
+                            $(document).off("keydown keyup mousemove");
+
+                            return; //change later
+                        }
+                    }
                 }
 
-
-                const {dx, dy} = getMovementVector();
+                if (gameActive){
+                    const {dx, dy} = getMovementVector();
+                    Socket.handlePlayerMovement(dx,dy,mouseX,mouseY);
+                }
 
                 /*
                 if (dx !== 0 || dy !== 0) {
@@ -425,7 +488,6 @@
                 */
 
                 //add web socket function here
-                Socket.handlePlayerMovement(dx,dy,mouseX,mouseY);
 
                 /* update sprites */
                 player1.update(now);
@@ -487,9 +549,9 @@
             })          
             
             /* Start the game */
-            setTimeout(()=>{
-                animationId = requestAnimationFrame(doFrame);
-            }, 200); //begin game after 100 microseconds. Why the delay? to wait for socket connection.
+            animationId = requestAnimationFrame(doFrame);
+
+            setTimeout(handleRoundStart, 1000);
         });
     </script>
 </body>

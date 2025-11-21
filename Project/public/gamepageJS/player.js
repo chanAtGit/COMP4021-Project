@@ -145,6 +145,8 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         speedReset: speedReset,
         getBoundingBox: sprite.getBoundingBox,
         draw: sprite.draw,
+        getXY: sprite.getXY,
+        setXY: sprite.setXY,
         update: update
     };
 };
