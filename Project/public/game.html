@@ -378,9 +378,9 @@
                 setTimeout(()=> {
                     console.log("You are Player "+ playerId);
                     if (playerId == 1){
-                        $("#p1-indicator").css("display", "block");
+                        $("#p1-indicator").show();
                     } else if (playerId == 2){
-                        $("#p2-indicator").css("display", "block");
+                        $("#p2-indicator").show();
                     }
                 }, 100); //wait till the commmunication finishes
             }, 100); //wait till connection with server
