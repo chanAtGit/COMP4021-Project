@@ -70,6 +70,16 @@
             stroke-width: 0.5px;
         }
 
+        #p1-indicator{
+            fill: red;
+            display: none;
+        }
+
+        #p2-indicator{
+            fill: blue;
+            display: none;
+        }
+
         #slot-container {
             position: absolute;
             left: 20px;
@@ -121,12 +131,14 @@
                 <line id="player1-hpLine" x1="12" y1="25" x2="298" y2="25" stroke="red" stroke-width="20"/>
                 <text x="15" y="35">P1:<tspan id="player1-HP">100</tspan></text>
             </g>
+            <text x="320" y="34"><tspan id="p1-indicator">YOU</tspan></text>
 
             <g id="healthBar-2">
                 <line x1="700" y1="25" x2="990" y2="25" stroke="grey" stroke-width="24"/>
                 <line id="player2-hpLine" x1="702" y1="25" x2="988" y2="25" stroke="blue" stroke-width="20"/>
                 <text x="910" y="35">P2:<tspan id="player2-HP">100</tspan></text>
             </g>
+            <text x="640" y="34"><tspan id="p2-indicator">YOU</tspan></text>
 
             <text x="450" y="25">
                 TIME:<tspan id="time-remaining">70</tspan>
@@ -168,6 +180,7 @@
     <script>
         $(function () {
             // Draw arena border on the canvas
+            window.playerId = 0; //socket can access this variable. store's player id (1 or 2)
             Socket.connect();
 
             const cv = $("canvas").get(0);
@@ -237,9 +250,13 @@
                 Crate(context, (right+left)/4*3, (top+bottom)/2, 3),
                 Crate(context, (right+left)/4*3 - 64*3/2, (top+bottom)/2 + 64*3/2, 1)
             ];
-            const player1 = Player(context, left, top + 128*3, 1, gameArea, obstacles); // The player 1
-            //const player2 = Player(context, right, bottom - 128*3, 2, gameArea, obstacles); // The player 2 - game location
-            const player2 = Player(context, left + 200, bottom - 128*3, 2, gameArea, obstacles); // The player 2 - test location
+
+            const p1_init_pos = {x: left, y: top + 128*3};
+            //const player2_init_pos = {x: right, y: bottom - 128*3};
+            const p2_init_pos = {x: left+200, y: bottom - 128*3}; //test initial location
+            const player1 = Player(context, p1_init_pos.x, p1_init_pos.y, 1, gameArea, obstacles); // The player 1
+            const player2 = Player(context, p2_init_pos.x, p2_init_pos.y, 2, gameArea, obstacles); // The player 2 - test location
+
             const weapons = [
                 Weapon(context, 427, 350, "AR"),       // weapon 1       
                 Weapon(context, 427, 360, "AR"),       // weapon 2 
@@ -354,6 +371,20 @@
                 }
             };
 
+            //Get Player Id
+            setTimeout(() => { //wait for connection to be fully established
+                console.log('Attempting getPlayerNum');
+                Socket.getPlayerNum();
+                setTimeout(()=> {
+                    console.log("You are Player "+ playerId);
+                    if (playerId == 1){
+                        $("#p1-indicator").css("display", "block");
+                    } else if (playerId == 2){
+                        $("#p2-indicator").css("display", "block");
+                    }
+                }, 100); //wait till the commmunication finishes
+            }, 100); //wait till connection with server
+
             /* main processing of the game */
             function doFrame(now){
                 if (roundStartTime == 0) roundStartTime = now;
@@ -456,7 +487,9 @@
             })          
             
             /* Start the game */
-            animationId = requestAnimationFrame(doFrame);
+            setTimeout(()=>{
+                animationId = requestAnimationFrame(doFrame);
+            }, 200); //begin game after 100 microseconds. Why the delay? to wait for socket connection.
         });
     </script>
 </body>

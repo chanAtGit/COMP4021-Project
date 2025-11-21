@@ -14,6 +14,7 @@ const Socket = (function() {
         // Wait for the socket to connect successfully
         socket.on("connect", () => {
             // Get the online user list
+            console.log("connected.");
             socket.emit("get users");
         });
 
@@ -21,7 +22,7 @@ const Socket = (function() {
         socket.on("users", (onlineUsers) => {
             onlineUsers = JSON.parse(onlineUsers);
             const usernames = Object.keys(onlineUsers); //get the usernames, which are the keys
-            //console.log(usernames);
+            console.log(usernames);
             $("#connected-users").text(usernames); //display connected users
         });
 
@@ -40,8 +41,14 @@ const Socket = (function() {
             }
         });
 
+        //GAME PAGE FUNCTIONS//
         socket.on("load gamepage", () => {
             window.location.href = '/game'; //tells the browser to navigate to that URL
+        });
+
+        socket.on("playerNum", (player_index)=>{
+            window.playerId = player_index;
+            console.log(playerId);
         });
 
         socket.on("update playerMove", (dx,dy,mouseX,mouseY,player_index) => {
@@ -64,14 +71,21 @@ const Socket = (function() {
             console.log("begin game");
             socket.emit("get gamepage"); //send server message to get gamepage
         }
-    }
+    };
+
+    const getPlayerNum = function(){
+        if (socket && socket.connected) {
+            console.log("get playerNum");
+            socket.emit("get playerNum"); //send server message to get gamepage
+        }
+    };
 
     //this function handles player movement. it sends server the data relating to the movement.
     const handlePlayerMovement = function(dx,dy,mouseX,mouseY){
         if (socket && socket.connected) {
             socket.emit("post playerMove", dx, dy, mouseX,mouseY); //send server message to update player movement
         }
-    }
+    };
 
     // This function sends a post message event to the server
     /*
@@ -87,5 +101,5 @@ const Socket = (function() {
         }
     }*/
 
-    return { getSocket, connect, disconnect, beginGame, handlePlayerMovement};
+    return { getSocket, connect, disconnect, beginGame, getPlayerNum, handlePlayerMovement};
 })();

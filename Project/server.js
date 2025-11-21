@@ -102,7 +102,7 @@ app.get("/validate", (req, res) => {
     //
     if (req.session.user == null){ //if req.session.user is undefined
         res.json({ status: "error", error: "User account does not exist" });
-        console.log("User not found.");
+        //console.log("User not found.");
         return;
     }
     //console.log(req.session.user);
@@ -147,6 +147,12 @@ io.on("connection", (socket) => {
 
     socket.on("get gamepage", ()=>{
         io.emit("load gamepage"); //send message to all players to load gamepage
+    });
+
+    socket.on("get playerNum", ()=>{
+        const usernames = Object.keys(onlineUsers); //get the usernames, which are the keys
+        const player_index = usernames.indexOf(current_user.username) + 1; // get which player (0 or 1) => (P1 or P2) is the user
+        socket.emit("playerNum", player_index);
     });
 
     socket.on("post playerMove", (dx,dy,mouseX,mouseY)=> {
