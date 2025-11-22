@@ -10,6 +10,32 @@ const app = express(); //initialise express application
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
+// server handle randomize
+const potionTypes = ['green', 'purple', 'orange'];
+const potionPoints = [
+    {x: 480, y: 160},
+    {x: 1050, y: 620}
+];
+
+// (array for 2 potions)
+let potions = potionPoints.map(point => ({
+    x: point.x,
+    y: point.y,
+    type: potionTypes[Math.floor(Math.random() * potionTypes.length)], // Initial random type
+    birthTime: Date.now() // For age tracking
+}));
+const itemMaxAge = 20000;
+setInterval(() => {
+    potions.forEach((potion, index) => {
+        if (Date.now() - potion.birthTime >= itemMaxAge) {
+            potion.type = potionTypes[Math.floor(Math.random() * potionTypes.length)];
+            potion.birthTime = Date.now();
+            io.emit('updatePotion', { index, ...potion }); // Broadcast respawn
+        }
+    });
+}, 1000);
+
+
 // Use the 'public' folder to serve static files
 app.use(express.static("public"));
 
@@ -146,7 +172,13 @@ io.on("connection", (socket) => {
     });
 
     socket.on("get gamepage", ()=>{
+        console.log("get gamepage");
+        // potions[index].setXY(serverPotion.x, serverPotion.y);
+        // potions[index].setPotionType(serverPotion.type);
+        // potions[index].birthTime = serverPotion.birthTime; // If you add birthTime to Potion module
         io.emit("load gamepage"); //send message to all players to load gamepage
+        io.emit("initPotions", potions);
+        console.log("gamepage sent");
     });
 
     socket.on("post playerMove", (dx,dy,mouseX,mouseY)=> {
@@ -154,6 +186,22 @@ io.on("connection", (socket) => {
         const player_index = usernames.indexOf(current_user.username) + 1; // get which player (0 or 1) => (P1 or P2) is the user
         io.emit("update playerMove", dx,dy,mouseX,mouseY,player_index); //broadcast to all players to update each player's movements
     });
+
+
+    socket.on('initPotions', (potions)=>{
+        console.log(potions);
+    });
+
+    // Handle potion pickup (sent from client when a player picks up a potion)
+    socket.on('pickupPotion', (data) => {
+        const { index } = data;
+        if (potions[index]) {
+            // "Pick up" by respawning after delay
+            // potions[index].birthTime = Date.now() - itemMaxAge; // Force respawn on next interval
+            io.emit('potionPickedUp', { index }); // Notify all clients
+        }
+    });
+
 });
 
 //-----------------WEBSOCKET SECTION END-------------------//

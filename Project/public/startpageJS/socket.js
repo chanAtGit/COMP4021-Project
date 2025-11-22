@@ -49,6 +49,32 @@ const Socket = (function() {
             // This will be handled in game.html where player objects exist
             window.updatePlayerMovement(dx, dy, mouseX, mouseY, player_index);
         });
+
+
+        socket.on('initPotions', (serverPotions) => {
+            console.log(serverPotions);
+            // serverPotions.forEach((serverPotion, index) => {
+            //     console.log(serverPotion);
+            //     potions[index].setXY(serverPotion.x, serverPotion.y);
+            //     potions[index].setPotionType(serverPotion.type);
+            //     potions[index].birthTime = serverPotion.birthTime; // If you add birthTime to Potion module
+            // });
+        });
+        
+        socket.on('updatePotion', (data) => {
+            const { index, x, y, type, birthTime } = data;
+            potions[index].setXY(x, y);
+            potions[index].setPotionType(type);
+            potions[index].birthTime = birthTime; // Sync age
+        });
+        
+        socket.on('potionPickedUp', (data) => {
+            const { index } = data;
+            // Hide the potion temporarily (e.g., move off-screen)
+            potions[index].setXY(-1000, -1000);
+            // The server will handle respawn and send 'updatePotion'
+        });
+
     };
 
     // This function disconnects the socket from the server
