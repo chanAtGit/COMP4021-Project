@@ -193,6 +193,7 @@
     <script src="gamepageJS/crate.js"></script>
     <script src="gamepageJS/weapon.js"></script>
     <script src="gamepageJS/potion.js"></script>
+    <script src="gamepageJS/bullet.js"></script>
     
     <script>
         $(function () {
@@ -222,7 +223,8 @@
 
             /* Create the sounds */
             const sounds = {
-                weaponPickup: new Audio("assets/weapon_pickup.mp3")
+                weaponPickup: new Audio("assets/weapon_pickup.mp3"),
+                mainGame: new Audio("assets/main_game_music.mp3")
             };
 
             /* create sprites */
@@ -284,6 +286,8 @@
                 Potion(context, 427, 350, "green"),    // potion 1
                 Potion(context, 427, 350, "green")     // potion 2 
             ];
+            const bullets = [];     // empty array to store bullets
+
             // fixed points for the items, can be changed later
             const weaponPoints = [          
                 {x: 450, y: 620}, 
@@ -354,6 +358,19 @@
                                 }, 10000);
                             }
                         });
+                    }
+                }
+            });
+            // shooting bullets 
+            $(document).on("mousedown", function(event) { 
+                if (gameActive){
+                    if (event.which == 1) {  // now the shoot button is left click, can be changed later 
+                        // Create a new bullet at player1's position
+                        const playerPos = player1.getXY();
+                        const angle = player1.getAngle();
+                        // will add a if statement to check weapon type 
+                        const bullet = Bullet(context, playerPos.x, playerPos.y, angle, "AR", gameArea, obstacles);
+                        bullets.push(bullet);
                     }
                 }
             });
@@ -498,6 +515,12 @@
                 potions.forEach((potion) => {
                     potion.update(now);
                 });
+                for (let i = bullets.length - 1; i >= 0; i--) {
+                    bullets[i].update(now);
+                    if (!bullets[i].isAlive()) {
+                        bullets.splice(i, 1); // Remove dead bullet
+                    }
+                }
 
                 /* Randomize the weapon */
                 weapons.forEach((weapon, index) => {
@@ -524,15 +547,21 @@
 
                 weapons.forEach((weapon) => {
                     weapon.draw(); 
-                }) 
+                }); 
 
                 potions.forEach((potion) => {
                     potion.draw(); 
-                })
+                });
 
                 player1.draw();
 
                 player2.draw();
+
+                bullets.forEach((bullet) => {
+                    if (bullet.isAlive()) {
+                        bullet.draw();
+                    }                     
+                });
 
                 /* Process the next frame */
                 animationId = requestAnimationFrame(doFrame);
