@@ -9,8 +9,8 @@ const Bullet = function(ctx, x, y, angle, bulletType, gameArea, obstacles) {
     // AR,SMG, shotgun.
     const sequences = {
         AR:  {x: 23, y:  160, width: 83, height: 24, count: 1, timing: 0, loop: false},
-        SMG:  {x: 20, y:  77, width: 28, height: 21, count: 1, timing: 0, loop: false}, 
-        shotgun:  {x: 20, y:  77, width: 28, height: 21, count: 1, timing: 0, loop: false} 
+        SMG:  {x: 319, y:  160, width: 83, height: 24, count: 1, timing: 0, loop: false}, 
+        shotgun:  {x: 957, y:  125, width: 105, height: 109, count: 1, timing: 0, loop: false} 
     };
 
     // This is the sprite object of the gem created from the Sprite module.
@@ -19,7 +19,7 @@ const Bullet = function(ctx, x, y, angle, bulletType, gameArea, obstacles) {
     // The sprite object is configured for the gem sprite here.
     sprite.setSequence(sequences[bulletType])
           .setScale(1)
-          .setShadowScale({ x: 0.4, y: 0.4 })
+          .setShadowScale({ x: 0, y: 0 })      // no shadow 
           .useSheet("assets/bullet_sprites.png");
 
     // This is the moving speed (pixels per second) of the bullet, will be changed based on type 

@@ -221,6 +221,8 @@
             const bottom = gameArea.getPoints().bottomLeft[1]-64+25;
             const top = gameArea.getPoints().topLeft[1]+64-25;
 
+            let weaponType; //store current weapon type
+
             /* Create the sounds */
             const sounds = {
                 weaponPickup: new Audio("assets/weapon_pickup.mp3"),
@@ -342,13 +344,16 @@
             //weapon pick up
             $(document).on("keydown", function(event) { 
                 if (gameActive){
-                    if (event.keyCode == 70) {  // now the pick up button is F, can be changed later 
+                    if (event.keyCode === 70) {  // now the pick up button is F, can be changed later 
                         weapons.forEach((weapon, index) => {
                             const weaponPos = weapon.getXY();
                             if (player1.getBoundingBox().isPointInBox(weaponPos.x, weaponPos.y)) {
                                 // Play collect sound
                                 sounds.weaponPickup.currentTime = 0;     // play from the start 
                                 sounds.weaponPickup.play(); 
+
+                                weaponType = weapon.getWeaponType();        // store current weapon type
+                                console.log("Picked up weapon: " + weaponType);
 
                                 weapon.randomize(gameArea);
                                 weapon.setXY(-1000, -1000);
@@ -364,12 +369,11 @@
             // shooting bullets 
             $(document).on("mousedown", function(event) { 
                 if (gameActive){
-                    if (event.which == 1) {  // now the shoot button is left click, can be changed later 
+                    if (event.which === 1 && weaponType) {  // now the shoot button is left click and the player has a weapon 
                         // Create a new bullet at player1's position
                         const playerPos = player1.getXY();
                         const angle = player1.getAngle();
-                        // will add a if statement to check weapon type 
-                        const bullet = Bullet(context, playerPos.x, playerPos.y, angle, "AR", gameArea, obstacles);
+                        const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
                         bullets.push(bullet);
                     }
                 }
@@ -466,6 +470,7 @@
                         if (round_num <= 3){ //not final round
                             roundStartTime = 0; //reset roundStartTime
                             gameActive = false;
+                            weaponType = null; //reset weapon type
                             $("#time-remaining").text(totalRoundTime);
                             $(".round-text").show(); //show round-text
                             revertPlayersPos();
