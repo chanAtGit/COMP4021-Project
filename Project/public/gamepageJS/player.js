@@ -62,6 +62,9 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     // This is the rotation angle (radian) of the player
     let angle = 0;
 
+    // for firing bullets
+    let lastFireTime = 0;
+
     // This function sets the player's moving direction.
     // - `dir` - the moving direction (1: Left, 2: Up, 3: Right, 4: Down)
     const setVelocity = function(dx, dy) {
@@ -135,6 +138,30 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         sprite.update(time);
     };
 
+    const fire = function(time, weaponType) {
+        let fireRate;
+        console.log("Attempting to fire at time " + time + "with wweapon " + weaponType);
+
+        if (weaponType === "SMG") {
+            fireRate = 0.2;
+        }
+        else if (weaponType === "AR") {
+            fireRate = 0.5;    
+        }
+        else {
+            fireRate = 0.75;     
+        }
+
+        if (time - lastFireTime < fireRate) {
+            return false; // cannot fire yet
+        }
+        else {
+            lastFireTime = time;
+            console.log("lastFireTime updated to " + lastFireTime);
+            return true; // can fire
+        }
+    }
+
     // The methods are returned as an object here.
     return {
         setVelocity: setVelocity,
@@ -148,6 +175,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         getXY: sprite.getXY,
         setXY: sprite.setXY,
         update: update, 
-        getAngle: () => angle
+        getAngle: () => angle, 
+        fire: fire
     };
 };
