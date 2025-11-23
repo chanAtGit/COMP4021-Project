@@ -43,7 +43,8 @@ const Weapon = function(ctx, x, y, weaponType) {
     const randomize = function() {
         /* Randomize the type */
         const types = ["AR", "SMG", "shotgun"];
-        setWeaponType(types[Math.floor(Math.random() * 3)]);
+        weaponType = types[Math.floor(Math.random() * 3)]; 
+        setWeaponType(weaponType);
     };
 
     // The methods are returned as an object here.
@@ -55,6 +56,7 @@ const Weapon = function(ctx, x, y, weaponType) {
         getBoundingBox: sprite.getBoundingBox,
         randomize: randomize,
         draw: sprite.draw,
-        update: sprite.update
+        update: sprite.update, 
+        getWeaponType: () => weaponType
     };
 };
