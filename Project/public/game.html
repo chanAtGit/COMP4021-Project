@@ -223,6 +223,12 @@
 
             let weaponType; //store current weapon type
 
+            const shotgunRange = 200;    // can be changed later 
+            const ARRange = 500;         // can be changed later
+            const SMGRange = 400;        // can be changed later
+
+            let currentTime = 0;   // to be used in shooting bullets 
+
             /* Create the sounds */
             const sounds = {
                 weaponPickup: new Audio("assets/weapon_pickup.mp3"),
@@ -373,8 +379,26 @@
                         // Create a new bullet at player1's position
                         const playerPos = player1.getXY();
                         const angle = player1.getAngle();
-                        const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
-                        bullets.push(bullet);
+                        let range; 
+                        switch(weaponType){
+                            case "shotgun":
+                                range = shotgunRange;
+                                break;
+                            case "AR":
+                                range = ARRange;
+                                break;
+                            case "SMG":
+                                range = SMGRange;
+                                break;
+                            default:
+                                range = ARRange;
+                        }
+                        if (player1.fire(currentTime, weaponType)) {       // check if can fire based on fire rate
+                            console.log(currentTime);
+                            console.log("Fired a " + weaponType + " bullet");
+                            const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles, range);
+                            bullets.push(bullet);
+                        }
                     }
                 }
             });
@@ -460,6 +484,8 @@
 
                 /* Update the time remaining (if game is active) */
                 if (gameActive){
+                    currentTime = now / 1000; //update current time in seconds
+
                     if (roundStartTime == 0) roundStartTime = now;
 
                     const roundTimeSoFar = now - roundStartTime;
