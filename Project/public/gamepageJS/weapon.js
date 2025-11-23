@@ -30,6 +30,7 @@ const Weapon = function(ctx, x, y, weaponType) {
     // `"AR"`, `"SMG"`, `"shotgun"` 
     const setWeaponType = function(weaponType) {
         sprite.setSequence(sequences[weaponType]);
+        console.log('set sequence');
         birthTime = performance.now();
     };
 

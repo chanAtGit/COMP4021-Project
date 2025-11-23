@@ -65,6 +65,24 @@ const Socket = (function() {
                 window.weapons[index].birthTime = serverWeapon.birthTime; // Sync age
             });
         })
+        socket.on('weaponPickedup', (x, y, newWeaponType) => {
+            for (let i = 0; i < window.weapons.length; i++){
+                if (window.weapons[i].x === x && window.weapons[i].y === y){
+                    window.weapons[i].x = -1000;
+                    window.weapons[i].y = -1000;
+                    window.weapons[i].weaponType = newWeaponType;
+                    break;
+                }
+            }
+        })
+        socket.on('updateWeapons', (serverWeapons) => {
+            console.log(serverWeapons);
+            serverWeapons.forEach((serverWeapon, index) => {
+                window.weapons[index].setXY(serverWeapon.x, serverWeapon.y);
+                window.weapons[index].setWeaponType(serverWeapon.type);
+                window.weapons[index].birthTime = serverWeapon.birthTime; // Sync age
+            });
+        })
 
         socket.on("initPotions", (serverPotions) => {
             console.log(serverPotions);
@@ -155,5 +173,5 @@ const Socket = (function() {
         }
     }*/
 
-    return { getSocket, connect, disconnect, beginGame, getPlayerNum, getInitWeapons, getInitPotions, handlePlayerMovement};
+    return { getSocket, connect, disconnect, beginGame, getPlayerNum, sendWeaponPickup, getInitWeapons, getInitPotions, handlePlayerMovement};
 })();

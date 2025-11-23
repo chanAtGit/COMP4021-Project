@@ -214,18 +214,36 @@ io.on("connection", (socket) => {
     socket.on("get initWeapons", ()=>{
         console.log(`init weapons:${weapons}`)
         io.emit("initWeapons", weapons);
+        // setTimeout(() => {
+        //     const newWeaponSet = weaponPoints.map(point => ({
+        //         x: point.x,
+        //         y: point.y,
+        //         type: weaponTypes[Math.floor(Math.random() * weaponTypes.length)], // Initial random type
+        //         birthTime: Date.now() // For age tracking
+        //     }));
+        //     io.emit("updateWeapons", newWeaponSet);
+        // }, 20000);
     })
 
     socket.on("weaponPickup", (x, y)=>{
-        io.emit("weaponPickup", x, y);
+        const newWeaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)]
+        io.emit("weaponPickedup", x, y, newWeaponType);
         for (let i = 0; i < weapons.length; i++){
             if (weapons[i].x === x && weapons[i].y === y){
-                weapons.x = -1000;
-                weapons.y = -1000;
+                weapons[i].x = -1000;
+                weapons[i].y = -1000;
+                weapons[i].weaponType = newWeaponType;
+                setTimeout(() => {
+                    weapons[i].x = x;
+                    weapons[i].y = y;
+                    weapons[i].birthTime = Date.now();
+                    io.emit("updateWeapons", weapons);
+                }, 10000);
                 break;
             }
         }
     })
+
 
     socket.on("get initPotions", () => {
         console.log(`init potions:${potions}`)
