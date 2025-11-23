@@ -147,6 +147,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         draw: sprite.draw,
         getXY: sprite.getXY,
         setXY: sprite.setXY,
-        update: update
+        update: update, 
+        getAngle: () => angle
     };
 };
