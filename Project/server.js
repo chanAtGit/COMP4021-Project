@@ -11,12 +11,11 @@ const httpServer = createServer(app);
 const io = new Server(httpServer);
 
 // server handle randomize
-const potionTypes = ['green', 'purple', 'orange'];
 const potionPoints = [
     {x: 480, y: 160},
     {x: 1050, y: 620}
 ];
-
+const potionTypes = ["green", "purple", "orange"];
 // (array for 2 potions)
 let potions = potionPoints.map(point => ({
     x: point.x,
@@ -25,6 +24,14 @@ let potions = potionPoints.map(point => ({
     birthTime: Date.now() // For age tracking
 }));
 const itemMaxAge = 20000;
+const setPotionType = function(potionType) {
+    sprite.setSequence(sequences[potionType]);
+    birthTime = Date.now();
+};
+const randomize = function() {
+    /* Randomize the type */
+    setPotionType(potionTypes[Math.floor(Math.random() * 3)]);
+};
 setInterval(() => {
     potions.forEach((potion, index) => {
         if (Date.now() - potion.birthTime >= itemMaxAge) {
@@ -35,6 +42,22 @@ setInterval(() => {
     });
 }, 1000);
 
+const weaponPoints = [          
+    {x: 450, y: 620}, 
+    {x: 760, y: 380}, 
+    {x: 1100, y: 160}
+];
+const weaponTypes = ["AR", "SMG", "shotgun"];
+const setWeaponType = function(weaponType) {
+    sprite.setSequence(sequences[weaponType]);
+    birthTime = Date.now();
+};
+let weapons = weaponPoints.map(point => ({
+    x: point.x,
+    y: point.y,
+    type: weaponTypes[Math.floor(Math.random() * weaponTypes.length)], // Initial random type
+    birthTime: Date.now() // For age tracking
+}));
 
 // Use the 'public' folder to serve static files
 app.use(express.static("public"));
@@ -151,6 +174,7 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
+
     // Add a new user to the online user list
     const current_user = socket.request.session.user; //get socket user
     if (current_user != null){ //validation is good!
@@ -172,13 +196,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("get gamepage", ()=>{
-        console.log("get gamepage");
-        // potions[index].setXY(serverPotion.x, serverPotion.y);
-        // potions[index].setPotionType(serverPotion.type);
-        // potions[index].birthTime = serverPotion.birthTime; // If you add birthTime to Potion module
         io.emit("load gamepage"); //send message to all players to load gamepage
-        io.emit("initPotions", potions);
-        console.log("gamepage sent");
     });
 
     socket.on("get playerNum", ()=>{
@@ -193,10 +211,27 @@ io.on("connection", (socket) => {
         io.emit("update playerMove", dx,dy,mouseX,mouseY,player_index); //broadcast to all players to update each player's movements
     });
 
+    socket.on("get initWeapons", ()=>{
+        console.log(`init weapons:${weapons}`)
+        io.emit("initWeapons", weapons);
+    })
 
-    socket.on('initPotions', (potions)=>{
-        console.log(potions);
-    });
+    socket.on("weaponPickup", (x, y)=>{
+        io.emit("weaponPickup", x, y);
+        for (let i = 0; i < weapons.length; i++){
+            if (weapons[i].x === x && weapons[i].y === y){
+                weapons.x = -1000;
+                weapons.y = -1000;
+                break;
+            }
+        }
+    })
+
+    socket.on("get initPotions", () => {
+        console.log(`init potions:${potions}`)
+        // io.emit("initPotions", potions);
+        io.emit("initPotions", potions);
+    })
 
     // Handle potion pickup (sent from client when a player picks up a potion)
     socket.on('pickupPotion', (data) => {

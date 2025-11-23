@@ -284,6 +284,8 @@
                 Potion(context, 427, 350, "green"),    // potion 1
                 Potion(context, 427, 350, "green")     // potion 2 
             ];
+            window.potions = potions;
+            window.weapons = weapons;
             // fixed points for the items, can be changed later
             const weaponPoints = [          
                 {x: 450, y: 620}, 
@@ -345,6 +347,7 @@
                                 // Play collect sound
                                 sounds.weaponPickup.currentTime = 0;     // play from the start 
                                 sounds.weaponPickup.play(); 
+                                Socket.sendWeaponPickup(weaponPos.x, weaponPos.y);
 
                                 weapon.randomize(gameArea);
                                 weapon.setXY(-1000, -1000);
@@ -429,9 +432,10 @@
                     } else if (playerId == 2){
                         $("#p2-indicator").show(); //show player2 indicator
                     }
+                    Socket.getInitPotions();
+                    Socket.getInitWeapons();
                 }, 100); //wait till the commmunication finishes
             }, 100); //wait till connection with server
-
 
 
             /* main processing of the game */
@@ -488,6 +492,7 @@
                 */
 
                 //add web socket function here
+                
 
                 /* update sprites */
                 player1.update(now);

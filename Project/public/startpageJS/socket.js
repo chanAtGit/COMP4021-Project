@@ -57,28 +57,35 @@ const Socket = (function() {
             window.updatePlayerMovement(dx, dy, mouseX, mouseY, player_index);
         });
 
+        socket.on("initWeapons", (serverWeapons) => {
+            console.log(serverWeapons);
+            serverWeapons.forEach((serverWeapon, index) => {
+                window.weapons[index].setXY(serverWeapon.x, serverWeapon.y);
+                window.weapons[index].setWeaponType(serverWeapon.type);
+                window.weapons[index].birthTime = serverWeapon.birthTime; // Sync age
+            });
+        })
 
-        socket.on('initPotions', (serverPotions) => {
+        socket.on("initPotions", (serverPotions) => {
             console.log(serverPotions);
-            // serverPotions.forEach((serverPotion, index) => {
-            //     console.log(serverPotion);
-            //     potions[index].setXY(serverPotion.x, serverPotion.y);
-            //     potions[index].setPotionType(serverPotion.type);
-            //     potions[index].birthTime = serverPotion.birthTime; // If you add birthTime to Potion module
-            // });
+            serverPotions.forEach((serverPotion, index) => {
+                window.potions[index].setXY(serverPotion.x, serverPotion.y);
+                window.potions[index].setPotionType(serverPotion.type);
+                window.potions[index].birthTime = serverPotion.birthTime; // If you add birthTime to Potion module
+            });
         });
         
         socket.on('updatePotion', (data) => {
             const { index, x, y, type, birthTime } = data;
-            potions[index].setXY(x, y);
-            potions[index].setPotionType(type);
-            potions[index].birthTime = birthTime; // Sync age
+            window.potions[index].setXY(x, y);
+            window.potions[index].setPotionType(type);
+            window.potions[index].birthTime = birthTime; // Sync age
         });
         
         socket.on('potionPickedUp', (data) => {
             const { index } = data;
             // Hide the potion temporarily (e.g., move off-screen)
-            potions[index].setXY(-1000, -1000);
+            window.potions[index].setXY(-1000, -1000);
             // The server will handle respawn and send 'updatePotion'
         });
 
@@ -106,6 +113,27 @@ const Socket = (function() {
         }
     };
 
+    const getInitWeapons = function(){
+        if (socket && socket.connected) {
+            console.log("get initWeapons");
+            socket.emit("get initWeapons"); //send server message to get gamepage
+        }
+    };
+
+    const sendWeaponPickup = function(x, y){
+        if (socket && socket.connected) {
+            console.log("send weaponPickup");
+            socket.emit("weaponPickup", x, y); //send server message to get gamepage
+        }
+    };
+
+    const getInitPotions = function(){
+        if (socket && socket.connected) {
+            console.log("get initPotions");
+            socket.emit("get initPotions"); //send server message to get gamepage
+        }
+    };
+
     //this function handles player movement. it sends server the data relating to the movement.
     const handlePlayerMovement = function(dx,dy,mouseX,mouseY){
         if (socket && socket.connected) {
@@ -127,5 +155,5 @@ const Socket = (function() {
         }
     }*/
 
-    return { getSocket, connect, disconnect, beginGame, getPlayerNum, handlePlayerMovement};
+    return { getSocket, connect, disconnect, beginGame, getPlayerNum, getInitWeapons, getInitPotions, handlePlayerMovement};
 })();
