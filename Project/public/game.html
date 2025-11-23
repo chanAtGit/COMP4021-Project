@@ -352,17 +352,20 @@
             $(document).on("keydown", function(event) { 
                 if (gameActive){
                     if (event.keyCode === 70) {  // now the pick up button is F, can be changed later 
-                        weapons.forEach((weapon, index) => {
+                        window.weapons.forEach((weapon, index) => {
                             const weaponPos = weapon.getXY();
                             if (player1.getBoundingBox().isPointInBox(weaponPos.x, weaponPos.y)) {
                                 // Play collect sound
                                 sounds.weaponPickup.currentTime = 0;     // play from the start 
                                 sounds.weaponPickup.play(); 
-                                Socket.sendWeaponPickup(weaponPos.x, weaponPos.y);
+                                // Socket.sendWeaponPickup(weaponPos.x, weaponPos.y);
+                                // console.log(`before pick, weapon${JSON.stringify(weapon)})`);
+                                // console.log(`before pick, window weapon${JSON.stringify(window.weapons)})`);
 
-                                weaponType = weapon.getWeaponType();        // store current weapon type
+                                weaponType = weapon.weaponType;        // store current weapon type
                                 console.log("Picked up weapon: " + weaponType);
 
+                                Socket.sendWeaponPickup(weaponPos.x, weaponPos.y);
                                 weapon.randomize(gameArea);
                                 weapon.setXY(-1000, -1000);
                                 // Respawn after 10 seconds
@@ -544,7 +547,7 @@
                 /* update sprites */
                 player1.update(now);
                 player2.update(now);
-                weapons.forEach((weapon) => {
+                window.weapons.forEach((weapon) => {
                     weapon.update(now); 
                 });
                 potions.forEach((potion) => {
@@ -558,7 +561,7 @@
                 }
 
                 /* Randomize the weapon */
-                weapons.forEach((weapon, index) => {
+                window.weapons.forEach((weapon, index) => {
                     if (weapon.getAge(now) >= itemMaxAge) {
                         weapon.randomize(); 
                         weapon.setXY(weaponPoints[index].x, weaponPoints[index].y); 
@@ -580,7 +583,7 @@
                     obstacles[i].draw();
                 }
 
-                weapons.forEach((weapon) => {
+                window.weapons.forEach((weapon) => {
                     weapon.draw(); 
                 }); 
 
@@ -603,7 +606,7 @@
             }
 
             // Moving the Weapon + Potion at the Start of the Game
-            weapons.forEach((weapon, index) => {
+            window.weapons.forEach((weapon, index) => {
                 weapon.randomize();
                 weapon.setXY(weaponPoints[index].x, weaponPoints[index].y);
             }) 
