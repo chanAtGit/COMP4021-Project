@@ -57,7 +57,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     let vy = 0;
 
     // This is the moving speed (pixels per second) of the player
-    let speed = 120;
+    let speed = 120; //originally 120
 
     // This is the rotation angle (radian) of the player
     let angle = 0;
