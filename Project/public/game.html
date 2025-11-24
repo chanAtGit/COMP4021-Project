@@ -294,6 +294,7 @@
                 Potion(context, 427, 350, "green")     // potion 2 
             ];
             const bullets = [];
+            let ammo = 0; //stores player's current ammo
             //window.potions = potions;
             //window.weapons = weapons;
             // fixed points for the items, can be changed later
@@ -365,6 +366,16 @@
                                 weaponType = weapon.weaponType;        // store current weapon type
                                 console.log("You picked up weapon: " + weaponType);
 
+                                //set ammo
+                                if (weaponType == "AR"){
+                                    ammo = 24; //set ammo count
+                                } else if (weaponType == "SMG"){
+                                    ammo = 30;
+                                } else {
+                                    ammo = 6;
+                                }
+                                $("#ammo-counter").text(ammo); //update ammo-counter in html
+
                                 
                                 const newWeaponType = weapon.randomize(gameArea);
                                 Socket.sendWeaponPickup(weaponPos.x, weaponPos.y, newWeaponType);
@@ -423,7 +434,7 @@
             function shoot(){
                 if (gameActive){
                     console.log("Shoot!");
-                    if (weaponType && weaponSelected) {  // now the shoot button is left click and the player has a weapon 
+                    if (weaponType && weaponSelected && ammo) {  // if they have a weapon, and the user has it selected, and they have ammo
                         // Create a new bullet at player1's position
                         if (player1.fire(currentTime, weaponType) && playerId == 1) {       // check if can fire based on fire rate
                             // console.log(currentTime);
@@ -436,7 +447,8 @@
                             gunSound.currentTime = 0;     // play from the start
                             gunSound.play();
                             bullets.push(bullet);
-                            console.log(bullets.length);
+                            ammo--;
+                            $("#ammo-counter").text(ammo); //update ammo-counter in html
                         }
 
                         if (player2.fire(currentTime, weaponType) && playerId == 2) {       // check if can fire based on fire rate
@@ -450,6 +462,8 @@
                             gunSound.currentTime = 0;     // play from the start
                             gunSound.play();
                             bullets.push(bullet);
+                            ammo--;
+                            $("#ammo-counter").text(ammo); //update ammo-counter in html
                         }
                     }
                 }
