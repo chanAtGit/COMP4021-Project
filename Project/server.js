@@ -212,7 +212,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("get initWeapons", ()=>{
-        console.log(`init weapons:${weapons}`)
+        console.log(`init weapons:${JSON.stringify(weapons)}`)
         io.emit("initWeapons", weapons);
         // setTimeout(() => {
         //     const newWeaponSet = weaponPoints.map(point => ({
@@ -225,14 +225,15 @@ io.on("connection", (socket) => {
         // }, 20000);
     })
 
-    socket.on("weaponPickup", (x, y)=>{
-        const newWeaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)]
-        io.emit("weaponPickedup", x, y, newWeaponType);
+    socket.on("weaponPickup", (x, y, weaponType)=>{
+        // const newWeaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)]; 
+        io.emit("weaponPickedup", x, y, weaponType);
         for (let i = 0; i < weapons.length; i++){
             if (weapons[i].x === x && weapons[i].y === y){
                 weapons[i].x = -1000;
                 weapons[i].y = -1000;
-                weapons[i].weaponType = newWeaponType;
+                weapons[i].type = weaponType;
+                console.log('new weapon spawned will be ' + weaponType);
                 setTimeout(() => {
                     weapons[i].x = x;
                     weapons[i].y = y;

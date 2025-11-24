@@ -368,8 +368,10 @@
                                 weaponType = weapon.weaponType;        // store current weapon type
                                 console.log("Picked up weapon: " + weaponType);
 
-                                Socket.sendWeaponPickup(weaponPos.x, weaponPos.y);
-                                weapon.randomize(gameArea);
+                                
+                                const newWeaponType = weapon.randomize(gameArea);
+                                Socket.sendWeaponPickup(weaponPos.x, weaponPos.y, newWeaponType);
+                                console.log("New weapon spawned: " + newWeaponType);
                                 weapon.setXY(-1000, -1000);
                                 // Respawn after 10 seconds
                                 setTimeout(() => {
@@ -402,7 +404,7 @@
                                 range = ARRange;
                         }
                         if (player1.fire(currentTime, weaponType)) {       // check if can fire based on fire rate
-                            console.log(currentTime);
+                            // console.log(currentTime);
                             console.log("Fired a " + weaponType + " bullet");
                             const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles, range);
                             // for playing gun sound

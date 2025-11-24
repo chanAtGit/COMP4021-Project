@@ -30,7 +30,8 @@ const Weapon = function(ctx, x, y, weaponType) {
     // `"AR"`, `"SMG"`, `"shotgun"` 
     const setWeaponType = function(weaponType) {
         sprite.setSequence(sequences[weaponType]);
-        console.log('set sequence');
+        // console.log('set sequence');
+        // console.log('new weapon type on weapon.js ' + weaponType);
         birthTime = performance.now();
     };
 
@@ -46,6 +47,8 @@ const Weapon = function(ctx, x, y, weaponType) {
         const types = ["AR", "SMG", "shotgun"];
         weaponType = types[Math.floor(Math.random() * 3)]; 
         setWeaponType(weaponType);
+
+        return weaponType;
     };
 
     // The methods are returned as an object here.

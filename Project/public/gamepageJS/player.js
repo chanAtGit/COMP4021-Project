@@ -140,7 +140,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
 
     const fire = function(time, weaponType) {
         let fireRate;
-        console.log("Attempting to fire at time " + time + "with wweapon " + weaponType);
+        // console.log("Attempting to fire at time " + time + "with wweapon " + weaponType);
 
         if (weaponType === "SMG") {
             fireRate = 0.2;
@@ -157,7 +157,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         }
         else {
             lastFireTime = time;
-            console.log("lastFireTime updated to " + lastFireTime);
+            // console.log("lastFireTime updated to " + lastFireTime);
             return true; // can fire
         }
     }

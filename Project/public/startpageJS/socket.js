@@ -81,6 +81,7 @@ const Socket = (function() {
             serverWeapons.forEach((serverWeapon, index) => {
                 window.weapons[index].setXY(serverWeapon.x, serverWeapon.y);
                 window.weapons[index].setWeaponType(serverWeapon.type);
+                console.log('updated weapon type is ' + serverWeapon.type);
                 window.weapons[index].weaponType = serverWeapon.type;
                 window.weapons[index].birthTime = serverWeapon.birthTime; // Sync age
             });
@@ -140,10 +141,10 @@ const Socket = (function() {
         }
     };
 
-    const sendWeaponPickup = function(x, y){
+    const sendWeaponPickup = function(x, y, weaponType){
         if (socket && socket.connected) {
-            console.log("send weaponPickup");
-            socket.emit("weaponPickup", x, y); //send server message to get gamepage
+            //console.log("send weaponPickup");
+            socket.emit("weaponPickup", x, y, weaponType); //send server message to get gamepage
         }
     };
 
