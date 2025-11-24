@@ -223,10 +223,6 @@
 
             let weaponType; //store current weapon type
 
-            const shotgunRange = 400;    // can be changed later 
-            const ARRange = 800;         // can be changed later
-            const SMGRange = 500;        // can be changed later
-
             let currentTime = 0;   // to be used in shooting bullets 
 
             /* Create the sounds */
@@ -389,24 +385,11 @@
                         // Create a new bullet at player1's position
                         const playerPos = player1.getXY();
                         const angle = player1.getAngle();
-                        let range; 
-                        switch(weaponType){
-                            case "shotgun":
-                                range = shotgunRange;
-                                break;
-                            case "AR":
-                                range = ARRange;
-                                break;
-                            case "SMG":
-                                range = SMGRange;
-                                break;
-                            default:
-                                range = ARRange;
-                        }
+                
                         if (player1.fire(currentTime, weaponType)) {       // check if can fire based on fire rate
                             // console.log(currentTime);
                             console.log("Fired a " + weaponType + " bullet");
-                            const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles, range);
+                            const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
                             // for playing gun sound
                             let gunSound = sounds[weaponType]; 
                             gunSound.currentTime = 0;     // play from the start
@@ -493,9 +476,12 @@
                 }, 100); //wait till the commmunication finishes
             }, 100); //wait till connection with server
 
+            let lastTime = 0;
+
             /* main processing of the game */
             function doFrame(now){
-
+                const dt = (now - lastTime) / 1000;   // delta time in seconds. Make player and bullet speed independent of framerate.
+                lastTime = now;
                 /* Update the time remaining (if game is active) */
                 if (gameActive){
                     currentTime = now / 1000; //update current time in seconds
@@ -553,8 +539,8 @@
                 
 
                 /* update sprites */
-                player1.update(now);
-                player2.update(now);
+                player1.update(now, dt);
+                player2.update(now, dt); //will update to dt if it works.
                 window.weapons.forEach((weapon) => {
                     weapon.update(now); 
                 });
@@ -562,7 +548,7 @@
                     potion.update(now);
                 });
                 for (let i = bullets.length - 1; i >= 0; i--) {
-                    bullets[i].update(now);
+                    bullets[i].update(now, dt);
                     if (!bullets[i].isAlive()) {
                         bullets.splice(i, 1); // Remove dead bullet
                     }
@@ -599,15 +585,15 @@
                     potion.draw(); 
                 });
 
-                player1.draw();
-
-                player2.draw();
-
                 bullets.forEach((bullet) => {
                     if (bullet.isAlive()) {
                         bullet.draw();
                     }                     
                 });
+
+                player1.draw();
+
+                player2.draw();
 
                 /* Process the next frame */
                 animationId = requestAnimationFrame(doFrame);

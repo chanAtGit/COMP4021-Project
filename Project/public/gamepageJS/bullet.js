@@ -3,7 +3,7 @@
 // - `x` - The initial x position of the bullet
 // - `y` - The initial y position of the bullet
 // - `gameArea` - The bounding box of the game area
-const Bullet = function(ctx, x, y, angle, bulletType, gameArea, obstacles, range) {
+const Bullet = function(ctx, x, y, angle, bulletType, gameArea, obstacles) {
 
     // This is the sprite sequences of the 3 bullets
     // AR,SMG, shotgun.
@@ -12,6 +12,25 @@ const Bullet = function(ctx, x, y, angle, bulletType, gameArea, obstacles, range
         SMG:  {x: 23, y:  160, width: 83, height: 24, count: 1, timing: 0, loop: false}, 
         shotgun:  {x: 692, y:  185, width: 101, height: 107, count: 1, timing: 0, loop: false} 
     };
+
+    const shotgunRange = 400;    // can be changed later 
+    const ARRange = 750;         // can be changed later
+    const SMGRange = 500;        // can be changed later
+
+    let range; 
+    switch(bulletType){
+        case "shotgun":
+            range = shotgunRange;
+            break;
+        case "AR":
+            range = ARRange;
+            break;
+        case "SMG":
+            range = SMGRange;
+            break;
+        default:
+            range = ARRange;
+    }
 
     // This is the sprite object of the gem created from the Sprite module.
     const sprite = Sprite(ctx, x, y);
@@ -23,28 +42,28 @@ const Bullet = function(ctx, x, y, angle, bulletType, gameArea, obstacles, range
           .useSheet("assets/bullet_sprites.png");
 
     // This is the moving speed (pixels per second) of the bullet, will be changed based on type 
-    let speed = 400; 
+    let speed = 1500; 
 
     // initial position of the bullet 
     let startX = x;         
     let startY = y;
 
     // calculate velocity
-    const vx = Math.cos(angle - Math.PI/2) * speed;
-    const vy = Math.sin(angle - Math.PI/2) * speed;
+    const vx = Math.cos(angle - Math.PI/2);
+    const vy = Math.sin(angle - Math.PI/2);
 
     let isAlive = true; 
 
     // This function updates the bullet.
     // - `time` - The timestamp when this function is called
-    const update = function(time) {
+    const update = function(time, dt) {
         if (!isAlive) return;
 
         let {x, y} = sprite.getXY();
 
         // Move the bullet
-        x += vx / 60; 
-        y += vy / 60;
+        x+= vx * speed * dt;
+        y+= vy * speed * dt;
 
         // Range check 
         const dx = x - startX;
