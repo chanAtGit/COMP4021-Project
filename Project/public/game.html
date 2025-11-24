@@ -232,7 +232,10 @@
             /* Create the sounds */
             const sounds = {
                 weaponPickup: new Audio("assets/weapon_pickup.mp3"),
-                mainGame: new Audio("assets/main_game_music.mp3")
+                mainGame: new Audio("assets/main_game_music.mp3"), 
+                AR: new Audio("assets/AR_sound.mp3"),
+                SMG: new Audio("assets/SMG_sound.mp3"),
+                shotgun: new Audio("assets/shotgun_sound.mp3")
             };
 
             /* create sprites */
@@ -402,6 +405,10 @@
                             console.log(currentTime);
                             console.log("Fired a " + weaponType + " bullet");
                             const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles, range);
+                            // for playing gun sound
+                            let gunSound = sounds[weaponType]; 
+                            gunSound.currentTime = 0;     // play from the start
+                            gunSound.play();
                             bullets.push(bullet);
                         }
                     }
