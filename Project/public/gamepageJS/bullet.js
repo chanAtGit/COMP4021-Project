@@ -8,9 +8,9 @@ const Bullet = function(ctx, x, y, angle, bulletType, gameArea, obstacles, range
     // This is the sprite sequences of the 3 bullets
     // AR,SMG, shotgun.
     const sequences = {
-        AR:  {x: 23, y:  160, width: 83, height: 24, count: 1, timing: 0, loop: false},
-        SMG:  {x: 319, y:  160, width: 83, height: 24, count: 1, timing: 0, loop: false}, 
-        shotgun:  {x: 957, y:  125, width: 105, height: 109, count: 1, timing: 0, loop: false} 
+        AR:  {x: 120, y:  165, width: 90, height: 24, count: 1, timing: 0, loop: false},
+        SMG:  {x: 23, y:  160, width: 83, height: 24, count: 1, timing: 0, loop: false}, 
+        shotgun:  {x: 692, y:  185, width: 101, height: 107, count: 1, timing: 0, loop: false} 
     };
 
     // This is the sprite object of the gem created from the Sprite module.
@@ -18,7 +18,7 @@ const Bullet = function(ctx, x, y, angle, bulletType, gameArea, obstacles, range
 
     // The sprite object is configured for the gem sprite here.
     sprite.setSequence(sequences[bulletType])
-          .setScale(1)
+          .setScale(0.7)
           .setShadowScale({ x: 0, y: 0 })      // no shadow 
           .useSheet("assets/bullet_sprites.png");
 
