@@ -57,7 +57,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     let vy = 0;
 
     // This is the moving speed (pixels per second) of the player
-    let speed = 120; //originally 120
+    let speed = 300;
 
     // This is the rotation angle (radian) of the player
     let angle = 0;
@@ -89,7 +89,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     };
 
     const speedReset = function() {
-        speed = 120;
+        speed = 240;
     };
 
     const setAngle = function(mouseX, mouseY) { //accept mouse x and y coordinates as parameters
@@ -111,9 +111,15 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         let collideWithObstacle = 0;
 
         if (vx != 0 || vy != 0) {
+            const deltaTime = time.deltaTime || 16.67; // Fallback to ~60 FPS frame time
+
             /* Move the player */
-            x += (vx * speed)/60;
-            y += (vy * speed)/60;
+            
+            const moveX = (vx * speed * deltaTime)/1000;
+            const moveY = (vy * speed * deltaTime)/1000;
+
+            x+= moveX;
+            y+= moveY;
 
             /* Set the new position if it is within the game area + (TO BE ADDED) not within an obstacle*/ 
             if (gameArea.isPointInBox(x, y)){
