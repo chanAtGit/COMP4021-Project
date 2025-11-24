@@ -221,7 +221,7 @@
             const bottom = gameArea.getPoints().bottomLeft[1]-64+25;
             const top = gameArea.getPoints().topLeft[1]+64-25;
 
-            let weaponType; //store current weapon type
+            let weaponType = null; //store current weapon type
 
             let currentTime = 0;   // to be used in shooting bullets 
 
@@ -284,18 +284,18 @@
             const player1 = Player(context, p1_init_pos.x, p1_init_pos.y, 1, gameArea, obstacles); // The player 1
             const player2 = Player(context, p2_init_pos.x, p2_init_pos.y, 2, gameArea, obstacles); // The player 2 - test location
 
-            const weapons = [
+            window.weapons = [
                 Weapon(context, 427, 350, "AR"),       // weapon 1       
                 Weapon(context, 427, 360, "AR"),       // weapon 2 
                 Weapon(context, 427, 370, "AR")        // weapon 3 
             ];
-            const potions = [
+            window.potions = [
                 Potion(context, 427, 350, "green"),    // potion 1
                 Potion(context, 427, 350, "green")     // potion 2 
             ];
             const bullets = [];
-            window.potions = potions;
-            window.weapons = weapons;
+            //window.potions = potions;
+            //window.weapons = weapons;
             // fixed points for the items, can be changed later
             const weaponPoints = [          
                 {x: 450, y: 620}, 
@@ -316,7 +316,7 @@
                 //console.log("Mouse position: X=" + mouseX + ", Y=" + mouseY);
             });
 
-
+            let weaponSelected = 1;
             /* key control */
             const keys = {}; // Object to keep track of pressed keys
             // Key handling for the slots and movement
@@ -330,13 +330,13 @@
                     // Left square becomes green, right resets to grey
                         $("#weapon-slot").css("border-color", "green");
                         $("#item-slot").css("border-color", "grey");
-
+                        weaponSelected = 1;
                     //send event ("equip weapon") to websocket
                     } else if (keys['e']) {
                         // Right square becomes green, left resets to grey
                         $("#weapon-slot").css("border-color", "gray");
                         $("#item-slot").css("border-color", "green");
-
+                        weaponSelected = 0;
                         //send event ("equip item") to websocket
                     }
                 }
@@ -351,9 +351,10 @@
             $(document).on("keydown", function(event) { 
                 if (gameActive){
                     if (event.keyCode === 70) {  // now the pick up button is F, can be changed later 
-                        window.weapons.forEach((weapon, index) => {
+                        weapons.forEach((weapon, index) => {
                             const weaponPos = weapon.getXY();
-                            if (player1.getBoundingBox().isPointInBox(weaponPos.x, weaponPos.y)) {
+                            if ((player1.getBoundingBox().isPointInBox(weaponPos.x, weaponPos.y) && playerId == 1) ||
+                                (player2.getBoundingBox().isPointInBox(weaponPos.x, weaponPos.y) && playerId == 2)) {
                                 // Play collect sound
                                 sounds.weaponPickup.currentTime = 0;     // play from the start 
                                 sounds.weaponPickup.play(); 
@@ -362,33 +363,87 @@
                                 // console.log(`before pick, window weapon${JSON.stringify(window.weapons)})`);
 
                                 weaponType = weapon.weaponType;        // store current weapon type
-                                console.log("Picked up weapon: " + weaponType);
+                                console.log("You picked up weapon: " + weaponType);
 
                                 
                                 const newWeaponType = weapon.randomize(gameArea);
                                 Socket.sendWeaponPickup(weaponPos.x, weaponPos.y, newWeaponType);
-                                console.log("New weapon spawned: " + newWeaponType);
-                                weapon.setXY(-1000, -1000);
+                                //console.log("New weapon spawned: " + newWeaponType);
+                                //weapon.setXY(-1000, -1000); will fix later
                                 // Respawn after 10 seconds
+                                /*
                                 setTimeout(() => {
                                     weapon.setXY(weaponPoints[index].x, weaponPoints[index].y);
-                                }, 10000);
+                                }, 10000);*/
                             }
                         });
                     }
                 }
             });
+            // Add these variables to track shooting state
+            let isShooting = false;
+            let shootInterval = null;
             // shooting bullets 
-            $(document).on("mousedown", function(event) { 
+            // the mouse event listeners. adjust firing rate.
+            $(document).on('mousedown', function(event) {
+                if (event.button === 0) { // Left mouse button
+                    isShooting = true;
+                    shoot(); // Shoot immediately on press
+                    let firing_period;
+                    if (weaponType == "AR"){
+                        firing_period = 200; //set firing period
+                    } else if (weaponType == "SMG"){
+                        firing_period = 125;
+                    } else {
+                        firing_period = 450;
+                    }
+                    shootInterval = setInterval(shoot, firing_period); //set firing rate
+                }
+            });
+
+            $(document).on('mouseup', function(event) {
+                if (event.button === 0) { // Left mouse button
+                    isShooting = false;
+                    if (shootInterval) {
+                        clearInterval(shootInterval);
+                        shootInterval = null;
+                    }
+                }
+            });
+
+            // Make sure to also handle if mouse leaves the window
+           $(document).on('mouseleave', function() {
+                isShooting = false;
+                if (shootInterval) {
+                    clearInterval(shootInterval);
+                    shootInterval = null;
+                }
+            });
+
+            function shoot(){
                 if (gameActive){
-                    if (event.which === 1 && weaponType) {  // now the shoot button is left click and the player has a weapon 
+                    console.log("Shoot!");
+                    if (weaponType && weaponSelected) {  // now the shoot button is left click and the player has a weapon 
                         // Create a new bullet at player1's position
-                        const playerPos = player1.getXY();
-                        const angle = player1.getAngle();
-                
-                        if (player1.fire(currentTime, weaponType)) {       // check if can fire based on fire rate
+                        if (player1.fire(currentTime, weaponType) && playerId == 1) {       // check if can fire based on fire rate
                             // console.log(currentTime);
-                            console.log("Fired a " + weaponType + " bullet");
+                            //console.log("Fired a " + weaponType + " bullet");
+                            const playerPos = player1.getXY();
+                            const angle = player1.getAngle();
+                            const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
+                            // for playing gun sound
+                            let gunSound = sounds[weaponType]; 
+                            gunSound.currentTime = 0;     // play from the start
+                            gunSound.play();
+                            bullets.push(bullet);
+                            console.log(bullets.length);
+                        }
+
+                        if (player2.fire(currentTime, weaponType) && playerId == 2) {       // check if can fire based on fire rate
+                            // console.log(currentTime);
+                            //console.log("Fired a " + weaponType + " bullet");
+                            const playerPos = player2.getXY();
+                            const angle = player2.getAngle();
                             const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
                             // for playing gun sound
                             let gunSound = sounds[weaponType]; 
@@ -398,8 +453,9 @@
                         }
                     }
                 }
-            });
+            }
 
+            //player movement
             function getMovementVector() {
                 let dx = 0, dy = 0;
                 if (keys['w']) dy -= 1;   // north
@@ -520,23 +576,6 @@
                     const {dx, dy} = getMovementVector();
                     Socket.handlePlayerMovement(dx,dy,mouseX,mouseY);
                 }
-
-                /*
-                if (dx !== 0 || dy !== 0) {
-                    // send the vector to the player; you can keep the old
-                    // move(direction) API by translating (dx,dy)→direction,
-                    // but a vector is far more flexible.
-                    player1.setVelocity(dx, dy);
-                } else {
-                    player1.stop();   // no keys pressed → stop
-                }
-
-                //handle player orientation towards mouse/crosshair
-                player1.setAngle(mouseX, mouseY);
-                */
-
-                //add web socket function here
-                
 
                 /* update sprites */
                 player1.update(now, dt);

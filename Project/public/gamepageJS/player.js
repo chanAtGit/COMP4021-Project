@@ -139,6 +139,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     };
 
     const fire = function(time, weaponType) {
+        /*
         let fireRate;
         // console.log("Attempting to fire at time " + time + "with wweapon " + weaponType);
 
@@ -159,7 +160,8 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
             lastFireTime = time;
             // console.log("lastFireTime updated to " + lastFireTime);
             return true; // can fire
-        }
+        }*/
+       return true;
     }
 
     // The methods are returned as an object here.

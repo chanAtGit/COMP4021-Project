@@ -57,9 +57,13 @@ const Socket = (function() {
             window.updatePlayerMovement(dx, dy, mouseX, mouseY, player_index);
         });
 
-        socket.on("initWeapons", (serverWeapons) => {
-            console.log(serverWeapons);
+        socket.on("initWeapons", (server_weapons) => {
+            //console.log(server_weapons);
+            const serverWeapons = JSON.parse(server_weapons);
+            //console.log(serverWeapons);
+            //console.log(window.weapons);
             serverWeapons.forEach((serverWeapon, index) => {
+                //console.log(serverWeapon.x);
                 window.weapons[index].setXY(serverWeapon.x, serverWeapon.y);
                 window.weapons[index].setWeaponType(serverWeapon.type);
                 window.weapons[index].weaponType = serverWeapon.type;
@@ -67,17 +71,23 @@ const Socket = (function() {
             });
         })
         socket.on('weaponPickedup', (x, y, newWeaponType) => {
+            //console.log("weapon picked up! new weapon type is "+newWeaponType+". Location = "+x+","+y);
+            //console.log(window.weapons);
             for (let i = 0; i < window.weapons.length; i++){
-                if (window.weapons[i].x === x && window.weapons[i].y === y){
-                    window.weapons[i].x = -1000;
-                    window.weapons[i].y = -1000;
-                    window.weapons[i].weaponType = newWeaponType;
+                //console.log(window.weapons[i].x + "," + window.weapons[i].y);
+                let weapon_coords = window.weapons[i].getXY();
+                if (weapon_coords.x == x && weapon_coords.y == y){
+                    //console.log("The weapon is: "+window.weapons[i]);
+                    //window.weapons[i].x = -1000;
+                    //window.weapons[i].y = -1000;
+                    window.weapons[i].setXY(-1000, -1000);
+                    window.weapons[i].setWeaponType(newWeaponType);
                     break;
                 }
             }
         })
         socket.on('updateWeapons', (serverWeapons) => {
-            console.log(serverWeapons);
+            console.log("Update weapons");
             serverWeapons.forEach((serverWeapon, index) => {
                 window.weapons[index].setXY(serverWeapon.x, serverWeapon.y);
                 window.weapons[index].setWeaponType(serverWeapon.type);
@@ -144,7 +154,8 @@ const Socket = (function() {
     const sendWeaponPickup = function(x, y, weaponType){
         if (socket && socket.connected) {
             //console.log("send weaponPickup");
-            socket.emit("weaponPickup", x, y, weaponType); //send server message to get gamepage
+            socket.emit("weaponPickup", x, y, weaponType); //send server message to get gamepage.original
+            //socket.emit("weaponPickup", x, y, weaponType);
         }
     };
 

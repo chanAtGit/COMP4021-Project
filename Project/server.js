@@ -52,10 +52,10 @@ const setWeaponType = function(weaponType) {
     sprite.setSequence(sequences[weaponType]);
     birthTime = Date.now();
 };
-let weapons = weaponPoints.map(point => ({
+let weapons = weaponPoints.map((point) => ({ //add i as unique id
     x: point.x,
     y: point.y,
-    type: weaponTypes[Math.floor(Math.random() * weaponTypes.length)], // Initial random type
+    type: weaponTypes[0], //AR for now. Will be randomised on every initialisation
     birthTime: Date.now() // For age tracking
 }));
 
@@ -212,8 +212,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("get initWeapons", ()=>{
-        console.log(`init weapons:${JSON.stringify(weapons)}`)
-        io.emit("initWeapons", weapons);
+        for (let i = 0; i < weapons.length; i++){ 
+            weapons[i].type = weaponTypes[Math.floor(Math.random() * weaponTypes.length)]; //randomise every initialisation
+        }
+        //console.log(`init weapons:${JSON.stringify(weapons)}`)
+        io.emit("initWeapons", JSON.stringify(weapons));
         // setTimeout(() => {
         //     const newWeaponSet = weaponPoints.map(point => ({
         //         x: point.x,
@@ -233,7 +236,7 @@ io.on("connection", (socket) => {
                 weapons[i].x = -1000;
                 weapons[i].y = -1000;
                 weapons[i].type = weaponType;
-                console.log('new weapon spawned will be ' + weaponType);
+                //console.log('new weapon spawned will be ' + weaponType);
                 setTimeout(() => {
                     weapons[i].x = x;
                     weapons[i].y = y;
