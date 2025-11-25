@@ -226,7 +226,7 @@ io.on("connection", (socket) => {
         //     }));
         //     io.emit("updateWeapons", newWeaponSet);
         // }, 20000);
-    })
+    });
 
     socket.on("weaponPickup", (x, y, weaponType)=>{
         // const newWeaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)]; 
@@ -246,14 +246,14 @@ io.on("connection", (socket) => {
                 break;
             }
         }
-    })
+    });
 
 
     socket.on("get initPotions", () => {
         console.log(`init potions:${potions}`)
         // io.emit("initPotions", potions);
         io.emit("initPotions", potions);
-    })
+    });
 
     // Handle potion pickup (sent from client when a player picks up a potion)
     socket.on('pickupPotion', (data) => {
@@ -263,6 +263,10 @@ io.on("connection", (socket) => {
             // potions[index].birthTime = Date.now() - itemMaxAge; // Force respawn on next interval
             io.emit('potionPickedUp', { index }); // Notify all clients
         }
+    });
+
+    socket.on("post bullet", (x,y,angle,weaponType) => {
+        io.emit("push bullet", x,y,angle,weaponType); //push bullet to everyone ie. both players
     });
 
 });

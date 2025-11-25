@@ -324,7 +324,7 @@
                 Potion(context, 427, 350, "green"),    // potion 1
                 Potion(context, 427, 350, "green")     // potion 2 
             ];
-            const bullets = [];
+            const bullets = []; //bullets to be rendered
             let ammo = 0; //stores player's current ammo
             //window.potions = potions;
             //window.weapons = weapons;
@@ -470,7 +470,7 @@
 
             function shoot(){
                 if (gameActive){
-                    console.log("Shoot!");
+                    //console.log("Shoot!");
                     if (weaponType && weaponSelected && ammo) {  // if they have a weapon, and the user has it selected, and they have ammo
                         // Create a new bullet at player1's position
                         if (player1.fire(currentTime, weaponType) && playerId == 1) {       // check if can fire based on fire rate
@@ -478,12 +478,13 @@
                             //console.log("Fired a " + weaponType + " bullet");
                             const playerPos = player1.getXY();
                             const angle = player1.getAngle();
-                            const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
+                            //const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
                             // for playing gun sound
                             let gunSound = sounds[weaponType]; 
                             gunSound.currentTime = 0;     // play from the start
                             gunSound.play();
-                            bullets.push(bullet);
+                            Socket.pushBullet(playerPos.x, playerPos.y, angle, weaponType); //pass bullet object parameters to websocket
+                            //bullets.push(bullet); //to be deleted
                             ammo--;
                             $("#ammo-counter").text(ammo); //update ammo-counter in html
                         }
@@ -493,12 +494,13 @@
                             //console.log("Fired a " + weaponType + " bullet");
                             const playerPos = player2.getXY();
                             const angle = player2.getAngle();
-                            const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
+                            //const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
                             // for playing gun sound
                             let gunSound = sounds[weaponType]; 
                             gunSound.currentTime = 0;     // play from the start
                             gunSound.play();
-                            bullets.push(bullet);
+                            Socket.pushBullet(playerPos.x, playerPos.y, angle, weaponType); 
+                            //bullets.push(bullet); //to be deleted
                             ammo--;
                             $("#ammo-counter").text(ammo); //update ammo-counter in html
                         }
@@ -541,6 +543,11 @@
                     player2.setAngle(mouseX, mouseY);
                 }
             };
+
+            window.addBullet = function(x,y,angle,weaponType){
+                const bullet = Bullet(context, x, y, angle, weaponType, gameArea, obstacles);
+                bullets.push(bullet);
+            }
 
             function revertPlayersPos(){
                 player1.stop(); 

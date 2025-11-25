@@ -60,7 +60,7 @@ const Socket = (function() {
         socket.on("initWeapons", (server_weapons) => {
             //console.log(server_weapons);
             const serverWeapons = JSON.parse(server_weapons);
-            //console.log(serverWeapons);
+            console.log(serverWeapons);
             //console.log(window.weapons);
             serverWeapons.forEach((serverWeapon, index) => {
                 //console.log(serverWeapon.x);
@@ -120,6 +120,12 @@ const Socket = (function() {
             // The server will handle respawn and send 'updatePotion'
         });
 
+        socket.on("push bullet", (x,y,angle,weaponType) => {
+            //const bullet = JSON.parse(bullet_json);
+            //console.log("pushing bullet");
+            window.addBullet(x,y,angle,weaponType);
+        });
+
     };
 
     // This function disconnects the socket from the server
@@ -173,6 +179,13 @@ const Socket = (function() {
         }
     };
 
+    const pushBullet = function(x,y,angle,weaponType){
+        if (socket && socket.connected) {
+            //console.log("Bullet info received by socket");
+            socket.emit("post bullet", x,y,angle,weaponType); //send server message to update player movement
+        }
+    }
+
     // This function sends a post message event to the server
     /*
     const postMessage = function(content) {
@@ -187,5 +200,5 @@ const Socket = (function() {
         }
     }*/
 
-    return { getSocket, connect, disconnect, beginGame, getPlayerNum, sendWeaponPickup, getInitWeapons, getInitPotions, handlePlayerMovement};
+    return { getSocket, connect, disconnect, beginGame, getPlayerNum, sendWeaponPickup, getInitWeapons, getInitPotions, handlePlayerMovement, pushBullet};
 })();
