@@ -43,7 +43,10 @@ const Potion = function(ctx, x, y, potionType) {
     const randomize = function() {
         /* Randomize the type */
         const types = ["green", "purple", "orange"];
-        setPotionType(types[Math.floor(Math.random() * 3)]);
+        potionType = types[Math.floor(Math.random() * 3)];
+        setPotionType(potionType);
+
+        return potionType;
     };
 
     // The methods are returned as an object here.

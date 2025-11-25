@@ -248,20 +248,69 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("weaponUpdate", (x, y, weaponType)=>{
+        // const newWeaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)]; 
+        io.emit("weaponUpdated", x, y, weaponType);
+        for (let i = 0; i < weapons.length; i++){
+            if (weapons[i].x === x && weapons[i].y === y){
+                weapons[i].x = x;
+                weapons[i].y = y;
+                weapons[i].type = weaponType;
+                weapons[i].birthTime = Date.now();
+                io.emit("updateWeapons", weapons);
+                break;
+            }
+        }
+    });
 
     socket.on("get initPotions", () => {
-        console.log(`init potions:${potions}`)
+        //console.log(`init potions:${potions}`)
         // io.emit("initPotions", potions);
-        io.emit("initPotions", potions);
+        for (let i = 0; i < potions.length; i++){ 
+            potions[i].type = potionTypes[Math.floor(Math.random() * potionTypes.length)]; //randomise every initialisation
+        }
+        io.emit("initPotions", JSON.stringify(potions));
     });
 
     // Handle potion pickup (sent from client when a player picks up a potion)
-    socket.on('pickupPotion', (data) => {
+    socket.on('potionPickup', (x, y, potionType) => {
+        /*
         const { index } = data;
         if (potions[index]) {
             // "Pick up" by respawning after delay
             // potions[index].birthTime = Date.now() - itemMaxAge; // Force respawn on next interval
             io.emit('potionPickedUp', { index }); // Notify all clients
+        }*/
+        io.emit("potionPickedup", x, y, potionType);
+        for (let i = 0; i < potions.length; i++){
+            if (potions[i].x === x && potions[i].y === y){
+                potions[i].x = -1000;
+                potions[i].y = -1000;
+                potions[i].type = potionType;
+                //console.log('new weapon spawned will be ' + weaponType);
+                setTimeout(() => {
+                    potions[i].x = x;
+                    potions[i].y = y;
+                    potions[i].birthTime = Date.now();
+                    io.emit("updatePotions", potions);
+                }, 10000);
+                break;
+            }
+        }
+    });
+
+    socket.on("potionUpdate", (x, y, potionType)=>{
+        // const newWeaponType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)]; 
+        io.emit("potionUpdated", x, y, potionType);
+        for (let i = 0; i < potions.length; i++){
+            if (potions[i].x === x && potions[i].y === y){
+                potions[i].x = x;
+                potions[i].y = y;
+                potions[i].type = potionType;
+                potions[i].birthTime = Date.now();
+                io.emit("updatePotions", potions);
+                break;
+            }
         }
     });
 

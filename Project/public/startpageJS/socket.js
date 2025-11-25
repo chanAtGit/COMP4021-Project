@@ -69,7 +69,7 @@ const Socket = (function() {
                 window.weapons[index].weaponType = serverWeapon.type;
                 window.weapons[index].birthTime = serverWeapon.birthTime; // Sync age
             });
-        })
+        });
         socket.on('weaponPickedup', (x, y, newWeaponType) => {
             //console.log("weapon picked up! new weapon type is "+newWeaponType+". Location = "+x+","+y);
             //console.log(window.weapons);
@@ -85,39 +85,92 @@ const Socket = (function() {
                     break;
                 }
             }
-        })
+        }); 
+        socket.on('weaponUpdated', (x, y, newWeaponType) => {
+            //console.log("weapon picked up! new weapon type is "+newWeaponType+". Location = "+x+","+y);
+            //console.log(window.weapons);
+            for (let i = 0; i < window.weapons.length; i++){
+                //console.log(window.weapons[i].x + "," + window.weapons[i].y);
+                let weapon_coords = window.weapons[i].getXY();
+                if (weapon_coords.x == x && weapon_coords.y == y){
+                    //console.log("The weapon is: "+window.weapons[i]);
+                    //window.weapons[i].x = -1000;
+                    //window.weapons[i].y = -1000;
+                    window.weapons[i].setWeaponType(newWeaponType);
+                    break;
+                }
+            }
+        });
         socket.on('updateWeapons', (serverWeapons) => {
             console.log("Update weapons");
             serverWeapons.forEach((serverWeapon, index) => {
                 window.weapons[index].setXY(serverWeapon.x, serverWeapon.y);
                 window.weapons[index].setWeaponType(serverWeapon.type);
-                console.log('updated weapon type is ' + serverWeapon.type);
+                // console.log('updated weapon type is ' + serverWeapon.type);
                 window.weapons[index].weaponType = serverWeapon.type;
                 window.weapons[index].birthTime = serverWeapon.birthTime; // Sync age
             });
-        })
+        }); 
 
-        socket.on("initPotions", (serverPotions) => {
-            console.log(serverPotions);
+        socket.on("initPotions", (server_potions) => {
+            //console.log(serverPotions);
+            const serverPotions = JSON.parse(server_potions);
             serverPotions.forEach((serverPotion, index) => {
                 window.potions[index].setXY(serverPotion.x, serverPotion.y);
                 window.potions[index].setPotionType(serverPotion.type);
-                window.potions[index].birthTime = serverPotion.birthTime; // If you add birthTime to Potion module
+                window.potions[index].potionType = serverPotion.type;
+                window.potions[index].birthTime = serverPotion.birthTime; // Sync age
             });
         });
-        
-        socket.on('updatePotion', (data) => {
+        socket.on('potionUpdated', (x, y, newPotionType) => {
+            //console.log("weapon picked up! new weapon type is "+newWeaponType+". Location = "+x+","+y);
+            //console.log(window.weapons);
+            for (let i = 0; i < window.potions.length; i++){
+                //console.log(window.weapons[i].x + "," + window.weapons[i].y);
+                let potion_coords = window.potions[i].getXY();
+                if (potion_coords.x == x && potion_coords.y == y){
+                    //console.log("The weapon is: "+window.weapons[i]);
+                    //window.weapons[i].x = -1000;
+                    //window.weapons[i].y = -1000;
+                    window.potions[i].setPotionType(newPotionType);
+                    break;
+                }
+            }
+        });
+        socket.on('updatePotions', (serverPotions) => {
+            /*
             const { index, x, y, type, birthTime } = data;
             window.potions[index].setXY(x, y);
             window.potions[index].setPotionType(type);
             window.potions[index].birthTime = birthTime; // Sync age
+            */
+            console.log("Update potions");
+            serverPotions.forEach((serverPotion, index) => {
+                window.potions[index].setXY(serverPotion.x, serverPotion.y);
+                window.potions[index].setPotionType(serverPotion.type);
+                // console.log('updated potion type is ' + serverPotion.type);
+                window.potions[index].potionType = serverPotion.type;
+                window.potions[index].birthTime = serverPotion.birthTime; // Sync age
+            });
         });
         
-        socket.on('potionPickedUp', (data) => {
-            const { index } = data;
+        socket.on('potionPickedup', (x, y, newPotionType) => {
+            //const { index } = data;
             // Hide the potion temporarily (e.g., move off-screen)
-            window.potions[index].setXY(-1000, -1000);
+            //window.potions[index].setXY(-1000, -1000);
             // The server will handle respawn and send 'updatePotion'
+            for (let i = 0; i < window.potions.length; i++){
+                //console.log(window.weapons[i].x + "," + window.weapons[i].y);
+                let potion_coords = window.potions[i].getXY();
+                if (potion_coords.x == x && potion_coords.y == y){
+                    //console.log("The weapon is: "+window.weapons[i]);
+                    //window.weapons[i].x = -1000;
+                    //window.weapons[i].y = -1000;
+                    window.potions[i].setXY(-1000, -1000);
+                    window.potions[i].setPotionType(newPotionType);
+                    break;
+                }
+            }
         });
 
         socket.on("push bullet", (x,y,angle,weaponType) => {
@@ -168,10 +221,34 @@ const Socket = (function() {
         }
     };
 
+    const sendWeaponUpdate = function(x, y, weaponType){
+        if (socket && socket.connected) {
+            //console.log("send weaponPickup");
+            socket.emit("weaponUpdate", x, y, weaponType); //send server message to get gamepage.original
+            //socket.emit("weaponPickup", x, y, weaponType);
+        }
+    };
+
     const getInitPotions = function(){
         if (socket && socket.connected) {
             console.log("get initPotions");
             socket.emit("get initPotions"); //send server message to get gamepage
+        }
+    };
+
+    const sendPotionPickup = function(x, y, potionType){
+        if (socket && socket.connected) {
+            //console.log("send weaponPickup");
+            socket.emit("potionPickup", x, y, potionType); //send server message to get gamepage.original
+            //socket.emit("weaponPickup", x, y, weaponType);
+        }
+    };
+
+    const sendPotionUpdate = function(x, y, potionType){
+        if (socket && socket.connected) {
+            //console.log("send weaponPickup");
+            socket.emit("potionUpdate", x, y, potionType); //send server message to get gamepage.original
+            //socket.emit("weaponPickup", x, y, weaponType);
         }
     };
 
@@ -234,6 +311,9 @@ const Socket = (function() {
         getInitPotions, 
         handlePlayerMovement, 
         pushBullet,
-        changePlayerSprite
+        changePlayerSprite, 
+        sendPotionPickup,
+        sendWeaponUpdate, 
+        sendPotionUpdate
     };
 })();

@@ -253,6 +253,7 @@
             const top = gameArea.getPoints().topLeft[1]+64-25;
 
             let weaponType = null; //store current weapon type
+            let potionType = null; //store current potion type
 
             let currentTime = 0;   // to be used in shooting bullets 
 
@@ -417,7 +418,7 @@
                                 $("#ammo-counter").text(ammo); //update ammo-counter in html
 
                                 
-                                const newWeaponType = weapon.randomize(gameArea);
+                                const newWeaponType = weapon.randomize();
                                 Socket.sendWeaponPickup(weaponPos.x, weaponPos.y, newWeaponType);
                                 Socket.changePlayerSprite(playerId, status);
                                 //console.log("New weapon spawned: " + newWeaponType);
@@ -432,6 +433,57 @@
                     }
                 }
             });
+
+            //potion pick up
+            $(document).on("keydown", function(event) { 
+                if (gameActive){
+                    if (event.keyCode === 70) {  // now the pick up button is F, can be changed later 
+                        potions.forEach((potion, index) => {
+                            const potionPos = potion.getXY();
+                            if ((player1.getBoundingBox().isPointInBox(potionPos.x, potionPos.y) && playerId == 1) ||
+                                (player2.getBoundingBox().isPointInBox(potionPos.x, potionPos.y) && playerId == 2)) {
+                                // Play collect sound (to be changed later)
+                                sounds.weaponPickup.currentTime = 0;     // play from the start 
+                                sounds.weaponPickup.play(); 
+                                // Socket.sendWeaponPickup(weaponPos.x, weaponPos.y);
+                                // console.log(`before pick, weapon${JSON.stringify(weapon)})`);
+                                // console.log(`before pick, window weapon${JSON.stringify(window.weapons)})`);
+
+                                potionType = potion.potionType;        // store current weapon type
+                                console.log("You picked up potion: " + potionType);
+                                let status = 0;
+                                //set ammo
+                                if (potionType == "green"){
+                                    // to be changed 
+                                    //$("#weapon-slot > img").hide(); //hide all weapons
+                                    //$("#AR-icon").show();
+                                    status = 4;    // defPotionHold
+                                } else if (potionType == "purple"){
+                                    //$("#weapon-slot > img").hide(); //hide all weapons
+                                    //$("#SMG-icon").show();
+                                    status = 8;    // spdPotionHold
+                                } else {
+                                    //$("#weapon-slot > img").hide(); //hide all weapons
+                                    //$("#shotgun-icon").show();
+                                    status = 6;    // ragPotionHold
+                                }
+                                
+                                const newPotionType = potion.randomize();
+                                Socket.sendPotionPickup(potionPos.x, potionPos.y, newPotionType);
+                                Socket.changePlayerSprite(playerId, status);
+                                //console.log("New weapon spawned: " + newWeaponType);
+                                //weapon.setXY(-1000, -1000); will fix later
+                                // Respawn after 10 seconds
+                                /*
+                                setTimeout(() => {
+                                    weapon.setXY(weaponPoints[index].x, weaponPoints[index].y);
+                                }, 10000);*/
+                            }
+                        });
+                    }
+                }
+            });
+
             // Add these variables to track shooting state
             let isShooting = false;
             let shootInterval = null;
@@ -562,6 +614,10 @@
 
             function revertPlayersPos(){
                 weaponType = null; //reset weapon type
+                potionType = null; //reset potion type
+                ammo = 0; //reset ammo
+                $("#ammo-counter").text(ammo); //update ammo-counter 
+                // add randomize weapon and potion ? 
                 player1.stop(); 
                 player2.stop();
                 player1.setXY(p1_init_pos.x, p1_init_pos.y);
@@ -655,7 +711,7 @@
                 window.weapons.forEach((weapon) => {
                     weapon.update(now); 
                 });
-                potions.forEach((potion) => {
+                window.potions.forEach((potion) => {
                     potion.update(now);
                 });
                 for (let i = bullets.length - 1; i >= 0; i--) {
@@ -668,15 +724,19 @@
                 /* Randomize the weapon */
                 window.weapons.forEach((weapon, index) => {
                     if (weapon.getAge(now) >= itemMaxAge) {
-                        weapon.randomize(); 
-                        weapon.setXY(weaponPoints[index].x, weaponPoints[index].y); 
+                        const weaponPos = weapon.getXY();
+                        const newWeaponType = weapon.randomize(); 
+                        Socket.sendWeaponUpdate(weaponPos.x, weaponPos.y, newWeaponType);
+                        // weapon.setXY(weaponPoints[index].x, weaponPoints[index].y); 
                     }
                 });
                 /* Randomize the potion */
-                potions.forEach((potion, index) => {
+                window.potions.forEach((potion, index) => {
                     if (potion.getAge(now) >= itemMaxAge) {
-                        potion.randomize(); 
-                        potion.setXY(potionPoints[index].x, potionPoints[index].y); 
+                        const potionPos = potion.getXY();
+                        const newPotionType = potion.randomize(); 
+                        Socket.sendPotionUpdate(potionPos.x, potionPos.y, newPotionType);
+                        //potion.setXY(potionPoints[index].x, potionPoints[index].y); 
                     }
                 });
 
@@ -692,7 +752,7 @@
                     weapon.draw(); 
                 }); 
 
-                potions.forEach((potion) => {
+                window.potions.forEach((potion) => {
                     potion.draw(); 
                 });
 
@@ -715,7 +775,7 @@
                 weapon.randomize();
                 weapon.setXY(weaponPoints[index].x, weaponPoints[index].y);
             }) 
-            potions.forEach((potion, index) => {
+            window.potions.forEach((potion, index) => {
                 potion.randomize();
                 potion.setXY(potionPoints[index].x, potionPoints[index].y);
             })          
