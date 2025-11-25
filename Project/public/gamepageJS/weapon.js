@@ -9,7 +9,7 @@ const Weapon = function(ctx, x, y, weaponType) {
     // AR, SMG and shotgun.
     const sequences = {
         AR:  { x: 260, y:  30, width: 70, height: 20, count: 1, timing: 0, loop: false },
-        SMG:    { x: 380, y: 140, width: 70, height: 30, count: 1, timing: 0, loop: false },
+        SMG:    { x: 398, y: 440, width: 32, height: 26, count: 1, timing: 0, loop: false },
         shotgun: { x: 460, y: 100, width: 70, height: 18, count: 1, timing: 0, loop: false }
     };
 

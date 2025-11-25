@@ -103,11 +103,36 @@
         }
 
         .slot {
+            position: relative; /* Add this line */
             width: 100px;
             height: 100px;
             border: 4px solid grey;  /* medium thickness, grey by default */
             border-radius: 5%;
             background-color: rgb(255,255,255,0.4);
+            overflow: hidden; /* keep children inside */
+            /* align items in the center */
+            text-align: left; /* Keeps text aligned normally */
+        }
+
+        .weapon-icon {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%,-50%) scale(1.5);
+            image-rendering: pixelated;
+            /* This centers the icon regardless of text position */
+        }
+
+        #AR-icon{
+            display:none;
+        }
+
+        #SMG-icon{
+            display:none;
+        }
+
+        #shotgun-icon{
+            display:none;
         }
 
         #ammo-container {
@@ -135,7 +160,9 @@
 <body>
     <!-- Gameplay Page -->
     <div id="gameplay-page" class = "pages">
+        <!-- Hidden Stuff -->
         <p id = "connected-users"></p>
+        <!-- Hidden Stuff END -->
         <canvas width="1536px" height="695px"></canvas>
 
         <svg xmlns="http://www.w3.org/2000/svg" id="upperUI" viewBox="0 0 1000 50">
@@ -170,6 +197,9 @@
         <div id="slot-container">
             <div id="weapon-slot" class="slot">
                 <p style = "font-size: 8px;">Weapon (Q)</p>
+                <img class = "weapon-icon" id = "AR-icon" src = "assets/AR_icon.png"  alt="AR icon"/>
+                <img class = "weapon-icon" id = "SMG-icon" src = "assets/SMG_icon.png"  alt="SMG icon"/>
+                <img class = "weapon-icon" id = "shotgun-icon" src = "assets/shotgun_icon.png"  alt="SMG icon"/>
             </div>
             <div id="item-slot" class="slot">
                 <p style = "font-size: 8px;">Item (E)</p>
@@ -201,6 +231,7 @@
             window.playerId = 0; //socket can access this variable. store's player id (1 or 2)
             Socket.connect();
 
+            $("#weapon-slot > img").hide(); //hide all weapons
             const cv = $("canvas").get(0);
             const context = cv.getContext("2d");
 
@@ -317,7 +348,7 @@
                 //console.log("Mouse position: X=" + mouseX + ", Y=" + mouseY);
             });
 
-            let weaponSelected = 1;
+            let weaponSelected = 1; //whether the player is selected their weapon slot
             /* key control */
             const keys = {}; // Object to keep track of pressed keys
             // Key handling for the slots and movement
@@ -368,11 +399,17 @@
 
                                 //set ammo
                                 if (weaponType == "AR"){
-                                    ammo = 24; //set ammo count
+                                    ammo = 25; //set ammo count
+                                    $("#weapon-slot > img").hide(); //hide all weapons
+                                    $("#AR-icon").show();
                                 } else if (weaponType == "SMG"){
                                     ammo = 30;
+                                    $("#weapon-slot > img").hide(); //hide all weapons
+                                    $("#SMG-icon").show();
                                 } else {
                                     ammo = 6;
+                                    $("#weapon-slot > img").hide(); //hide all weapons
+                                    $("#shotgun-icon").show();
                                 }
                                 $("#ammo-counter").text(ammo); //update ammo-counter in html
 
@@ -394,7 +431,7 @@
             // Add these variables to track shooting state
             let isShooting = false;
             let shootInterval = null;
-            // shooting bullets 
+            // SHOOTING BULLETS
             // the mouse event listeners. adjust firing rate.
             $(document).on('mousedown', function(event) {
                 if (event.button === 0) { // Left mouse button
@@ -402,7 +439,7 @@
                     shoot(); // Shoot immediately on press
                     let firing_period;
                     if (weaponType == "AR"){
-                        firing_period = 200; //set firing period
+                        firing_period = 175; //set firing period
                     } else if (weaponType == "SMG"){
                         firing_period = 125;
                     } else {
@@ -469,7 +506,7 @@
                 }
             }
 
-            //player movement
+            //PLAYER MOVEMENT
             function getMovementVector() {
                 let dx = 0, dy = 0;
                 if (keys['w']) dy -= 1;   // north
@@ -567,6 +604,7 @@
                             roundStartTime = 0; //reset roundStartTime
                             gameActive = false;
                             weaponType = null; //reset weapon type
+                            $("#weapon-slot > img").hide(); //hide all weapons
                             $("#time-remaining").text(totalRoundTime);
                             $(".round-text").show(); //show round-text
                             revertPlayersPos();

@@ -13,7 +13,7 @@ const Bullet = function(ctx, x, y, angle, bulletType, gameArea, obstacles) {
         shotgun:  {x: 692, y:  185, width: 101, height: 107, count: 1, timing: 0, loop: false} 
     };
 
-    const shotgunRange = 400;    // can be changed later 
+    const shotgunRange = 450;    // can be changed later 
     const ARRange = 750;         // can be changed later
     const SMGRange = 500;        // can be changed later
 
