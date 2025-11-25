@@ -9,7 +9,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     // It contains the idling sprite sequences `idleLeft`, `idleUp`, `idleRight` and `idleDown`,
     // and the moving sprite sequences `moveLeft`, `moveUp`, `moveRight` and `moveDown`.
     const sequences_blue = {
-        empty:  { x: 150*4, y: 0, width: 150, height: 150, count: 1, timing: 0, loop: false },
+        noItem:  { x: 150*4, y: 0, width: 150, height: 150, count: 1, timing: 0, loop: false },
         SMG:  { x: 150*8, y: 0, width: 150, height: 150, count: 1, timing: 0, loop: false },
         AR:  {x: 0, y: 0, width: 150, height: 150, count: 1, timing: 0, loop: false },
         Shotgun: {x: 150*7, y: 0, width: 150, height: 150, count: 1, timing: 0, loop: false},
@@ -23,7 +23,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     };
 
     const sequences_red = {
-        empty:  { x: 150*4, y: 150, width: 150, height: 150, count: 1, timing: 0, loop: false },
+        noItem:  { x: 150*4, y: 150, width: 150, height: 150, count: 1, timing: 0, loop: false },
         SMG:  { x: 150*8, y: 150, width: 150, height: 150, count: 1, timing: 0, loop: false },
         AR:  {x: 0, y: 150, width: 150, height: 150, count: 1, timing: 0, loop: false },
         Shotgun: {x: 150*7, y: 150, width: 150, height: 150, count: 1, timing: 0, loop: false},
@@ -47,7 +47,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     }
 
     // The sprite object is configured for the player sprite here.
-    sprite.setSequence(sequences.empty)
+    sprite.setSequence(sequences.noItem)
           .setScale(1)
           .setShadowScale({ x: 0.4, y: 0.4}) // { x: 0.75, y: 0.20 }
           .useSheet("assets/player_sprites.png");
@@ -63,10 +63,32 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     let angle = 0;
 
     // for firing bullets
-    let lastFireTime = 0;
+    //let lastFireTime = 0;
 
     // This function sets the player's moving direction.
     // - `dir` - the moving direction (1: Left, 2: Up, 3: Right, 4: Down)
+
+    /*status is an integer value that determines the player status
+    0 - noItem
+    1 - SMG
+    2 - AR
+    3 - Shotgun
+    4 - defPotionHold
+    5 - defPotionDrink
+    6 - ragPotionHold
+    7 - ragPotionDrink
+    8 - spdPotionHold
+    9 - spdPotionDrink
+    10 - dead
+    */
+    const setStatusSprite = function(status){
+        const sequenceKeys = Object.keys(sequences);
+        sprite.setSequence(sequences[sequenceKeys[status]])
+          .setScale(1)
+          .setShadowScale({ x: 0.4, y: 0.4}) // { x: 0.75, y: 0.20 }
+          .useSheet("assets/player_sprites.png");
+    }
+
     const setVelocity = function(dx, dy) {
         vx = dx;
         vy = dy;
@@ -178,6 +200,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         setXY: sprite.setXY,
         update: update, 
         getAngle: () => angle, 
+        setStatusSprite: setStatusSprite,
         fire: fire
     };
 };

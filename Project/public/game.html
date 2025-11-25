@@ -396,26 +396,30 @@
 
                                 weaponType = weapon.weaponType;        // store current weapon type
                                 console.log("You picked up weapon: " + weaponType);
-
+                                let status = 0;
                                 //set ammo
                                 if (weaponType == "AR"){
                                     ammo = 25; //set ammo count
                                     $("#weapon-slot > img").hide(); //hide all weapons
                                     $("#AR-icon").show();
+                                    status = 2;
                                 } else if (weaponType == "SMG"){
                                     ammo = 30;
                                     $("#weapon-slot > img").hide(); //hide all weapons
                                     $("#SMG-icon").show();
+                                    status = 1;
                                 } else {
                                     ammo = 6;
                                     $("#weapon-slot > img").hide(); //hide all weapons
                                     $("#shotgun-icon").show();
+                                    status = 3;
                                 }
                                 $("#ammo-counter").text(ammo); //update ammo-counter in html
 
                                 
                                 const newWeaponType = weapon.randomize(gameArea);
                                 Socket.sendWeaponPickup(weaponPos.x, weaponPos.y, newWeaponType);
+                                Socket.changePlayerSprite(playerId, status);
                                 //console.log("New weapon spawned: " + newWeaponType);
                                 //weapon.setXY(-1000, -1000); will fix later
                                 // Respawn after 10 seconds
@@ -479,10 +483,6 @@
                             const playerPos = player1.getXY();
                             const angle = player1.getAngle();
                             //const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
-                            // for playing gun sound
-                            let gunSound = sounds[weaponType]; 
-                            gunSound.currentTime = 0;     // play from the start
-                            gunSound.play();
                             Socket.pushBullet(playerPos.x, playerPos.y, angle, weaponType); //pass bullet object parameters to websocket
                             //bullets.push(bullet); //to be deleted
                             ammo--;
@@ -495,10 +495,6 @@
                             const playerPos = player2.getXY();
                             const angle = player2.getAngle();
                             //const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
-                            // for playing gun sound
-                            let gunSound = sounds[weaponType]; 
-                            gunSound.currentTime = 0;     // play from the start
-                            gunSound.play();
                             Socket.pushBullet(playerPos.x, playerPos.y, angle, weaponType); 
                             //bullets.push(bullet); //to be deleted
                             ammo--;
@@ -525,7 +521,7 @@
                 return {dx, dy};
             }
 
-            // Global functions that socket.js can call
+            /*Global functions that socket.js can call*/
             window.updatePlayerMovement = function(dx, dy, mouseX, mouseY, playerIndex) {
                 if (playerIndex === 1 && player1) {
                     if (dx !== 0 || dy !== 0) {
@@ -545,16 +541,34 @@
             };
 
             window.addBullet = function(x,y,angle,weaponType){
+                //play gun sound
+                let gunSound = sounds[weaponType]; 
+                gunSound.currentTime = 0;     // play from the start
+                gunSound.play();
+                //push bullet to bullets array
                 const bullet = Bullet(context, x, y, angle, weaponType, gameArea, obstacles);
                 bullets.push(bullet);
-            }
+            };
+
+            window.changePlayerSprite = function(playerId, status){
+                if (playerId == 1){
+                    player1.setStatusSprite(status);
+                } else {
+                    player2.setStatusSprite(status);
+                }
+            };
+
+            /*Global functions END*/
 
             function revertPlayersPos(){
+                weaponType = null; //reset weapon type
                 player1.stop(); 
                 player2.stop();
                 player1.setXY(p1_init_pos.x, p1_init_pos.y);
                 player2.setXY(p2_init_pos.x, p2_init_pos.y);
                 //add function to return every player to their original state (position, sprite, health, potion effect, no weapons or items)
+                player1.setStatusSprite(0);
+                player2.setStatusSprite(0);
             }
 
             let countdown = 3;
@@ -610,7 +624,6 @@
                         if (round_num <= 3){ //not final round
                             roundStartTime = 0; //reset roundStartTime
                             gameActive = false;
-                            weaponType = null; //reset weapon type
                             $("#weapon-slot > img").hide(); //hide all weapons
                             $("#time-remaining").text(totalRoundTime);
                             $(".round-text").show(); //show round-text

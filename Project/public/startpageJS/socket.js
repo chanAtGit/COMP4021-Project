@@ -126,6 +126,9 @@ const Socket = (function() {
             window.addBullet(x,y,angle,weaponType);
         });
 
+        socket.on("change playerSprite", (playerId, playerStatus) => {
+            window.changePlayerSprite(playerId, playerStatus);
+        });
     };
 
     // This function disconnects the socket from the server
@@ -182,9 +185,29 @@ const Socket = (function() {
     const pushBullet = function(x,y,angle,weaponType){
         if (socket && socket.connected) {
             //console.log("Bullet info received by socket");
-            socket.emit("post bullet", x,y,angle,weaponType); //send server message to update player movement
+            socket.emit("get bullet", x,y,angle,weaponType); //send server message to update player movement
         }
-    }
+    };
+
+    //Important socket function - changePlayerSprite
+    /*status is an integer value that determines the player status
+    0 - noItem
+    1 - SMG
+    2 - AR
+    3 - Shotgun
+    4 - defPotionHold
+    5 - defPotionDrink
+    6 - ragPotionHold
+    7 - ragPotionDrink
+    8 - spdPotionHold
+    9 - spdPotionDrink
+    10 - dead
+    */
+    const changePlayerSprite = function(playerId, status){
+        if (socket && socket.connected){
+            socket.emit("get playerSprite", playerId, status);
+        }
+    };
 
     // This function sends a post message event to the server
     /*
@@ -200,5 +223,17 @@ const Socket = (function() {
         }
     }*/
 
-    return { getSocket, connect, disconnect, beginGame, getPlayerNum, sendWeaponPickup, getInitWeapons, getInitPotions, handlePlayerMovement, pushBullet};
+    return {
+        getSocket, 
+        connect, 
+        disconnect, 
+        beginGame, 
+        getPlayerNum, 
+        sendWeaponPickup, 
+        getInitWeapons, 
+        getInitPotions, 
+        handlePlayerMovement, 
+        pushBullet,
+        changePlayerSprite
+    };
 })();
