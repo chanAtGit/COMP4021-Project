@@ -270,7 +270,9 @@
                 mainGame: new Audio("assets/main_game_music.mp3"), 
                 AR: new Audio("assets/AR_sound.mp3"),
                 SMG: new Audio("assets/SMG_sound.mp3"),
-                shotgun: new Audio("assets/shotgun_sound.mp3")
+                shotgun: new Audio("assets/shotgun_sound.mp3"), 
+                potionUse: new Audio("assets/potion_use.mp3") ,
+                gameover: new Audio("assets/gameover_music.mp3")
             };
 
             /* create sprites */
@@ -391,7 +393,7 @@
                     //send event ("equip weapon") to websocket
                     } else if (keys['e']) {
                         if (potionType && weaponSelected){ //the user has a potion and was on weapon slot
-                            sounds.potionPickup.currentTime = 0.5;     // play from the 0.5 secs mark
+                            sounds.potionPickup.currentTime = 0;     
                             sounds.potionPickup.play(); 
                         } 
                         // Right square becomes green, left resets to grey
@@ -480,8 +482,8 @@
                                 }
                                 potionType = potion.potionType;        // store current weapon type
                                 
-                                // Play collect sound (to be changed later)
-                                sounds.potionPickup.currentTime = 0.5;     // play from the 0.5 secs mark
+                                // Play collect sound 
+                                sounds.potionPickup.currentTime = 0;     
                                 sounds.potionPickup.play(); 
                                 console.log("You picked up potion: " + potionType);
                                 let status = statusMap[potionType];
@@ -685,6 +687,8 @@
                 $(`#player1-hpLine`).attr("x2", p1_hpLine_x2_init); //restore health bar
                 $("#player2-HP").text(player2.getHP()); //update health display
                 $(`#player2-hpLine`).attr("x1", p2_hpLine_x1_init); //restore health bar
+                sounds.mainGame.pause();
+                sounds.mainGame.currentTime = 0;
             }
 
             let countdown = 3;
@@ -701,6 +705,7 @@
                     $(".round-text").text("ROUND "+round_num);
                     $(".round-text").hide();
                     gameActive = true;
+                    sounds.mainGame.play();
                 }
             }
 
@@ -762,6 +767,10 @@
                         } else {
                             // Stop the game
                             cancelAnimationFrame(animationId);
+                            // stop the game music
+                            sounds.mainGame.pause();
+                            // play the game over music
+                            sounds.gameover.play(); 
 
                             // Optional: Show game over message
                             alert("Game Over!");
@@ -906,6 +915,9 @@
                 potion.setXY(potionPoints[index].x, potionPoints[index].y);
             })          
             
+            sounds.mainGame.currentTime = 0;
+            sounds.mainGame.play();
+
             /* Start the game */
             animationId = requestAnimationFrame(doFrame);
 
