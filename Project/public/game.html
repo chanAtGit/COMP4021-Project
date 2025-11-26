@@ -114,25 +114,14 @@
             text-align: left; /* Keeps text aligned normally */
         }
 
-        .weapon-icon {
+        .slot .icon {
             position: absolute;
             left: 50%;
             top: 50%;
             transform: translate(-50%,-50%) scale(1.5);
             image-rendering: pixelated;
+            display: none;
             /* This centers the icon regardless of text position */
-        }
-
-        #AR-icon{
-            display:none;
-        }
-
-        #SMG-icon{
-            display:none;
-        }
-
-        #shotgun-icon{
-            display:none;
         }
 
         #ammo-container {
@@ -197,12 +186,15 @@
         <div id="slot-container">
             <div id="weapon-slot" class="slot">
                 <p style = "font-size: 8px;">Weapon (Q)</p>
-                <img class = "weapon-icon" id = "AR-icon" src = "assets/AR_icon.png"  alt="AR icon"/>
-                <img class = "weapon-icon" id = "SMG-icon" src = "assets/SMG_icon.png"  alt="SMG icon"/>
-                <img class = "weapon-icon" id = "shotgun-icon" src = "assets/shotgun_icon.png"  alt="SMG icon"/>
+                <img class = "icon" id = "AR-icon" src = "assets/AR_icon.png"  alt="AR icon"/>
+                <img class = "icon" id = "SMG-icon" src = "assets/SMG_icon.png"  alt="SMG icon"/>
+                <img class = "icon" id = "shotgun-icon" src = "assets/shotgun_icon.png"  alt="SMG icon"/>
             </div>
             <div id="item-slot" class="slot">
                 <p style = "font-size: 8px;">Item (E)</p>
+                <img class = "icon" id = "green-potion-icon" src = "assets/green_pot_icon.png"  alt="def icon"/>
+                <img class = "icon" id = "purple-potion-icon" src = "assets/purple_pot_icon.png"  alt="spd icon"/>
+                <img class = "icon" id = "orange-potion-icon" src = "assets/orange_pot_icon.png"  alt="rge icon"/>
             </div>
         </div>
 
@@ -260,6 +252,7 @@
             /* Create the sounds */
             const sounds = {
                 weaponPickup: new Audio("assets/weapon_pickup.mp3"),
+                potionPickup: new Audio("assets/potion_pickup.mp3"),
                 mainGame: new Audio("assets/main_game_music.mp3"), 
                 AR: new Audio("assets/AR_sound.mp3"),
                 SMG: new Audio("assets/SMG_sound.mp3"),
@@ -339,6 +332,16 @@
                 {x: 480, y: 160}, 
                 {x: 1050, y: 620}
             ];
+            //item or action to status mapping
+            const statusMap = {
+                null: 0,
+                SMG: 1,
+                AR: 2,
+                shotgun: 3,
+                green: 4, //green potion
+                orange: 6,
+                purple: 8
+            }
 
             $("#weapon-slot").css("border-color", "green"); //User initially is on weapon slot.
 
@@ -360,16 +363,26 @@
                     }
                     //slot handling
                     if (keys['q']) {
-                    // Left square becomes green, right resets to grey
+                        if (weaponType){ //the user has a weapon
+                            sounds.weaponPickup.currentTime = 0;     // play from the start
+                            sounds.weaponPickup.play(); 
+                        } 
+                        // Left square becomes green, right resets to grey
                         $("#weapon-slot").css("border-color", "green");
                         $("#item-slot").css("border-color", "grey");
                         weaponSelected = 1;
+                        Socket.changePlayerSprite(playerId, statusMap[weaponType]);
                     //send event ("equip weapon") to websocket
                     } else if (keys['e']) {
+                        if (potionType){ //the user has a potion
+                            sounds.potionPickup.currentTime = 0.5;     // play from the 0.5 secs mark
+                            sounds.potionPickup.play(); 
+                        } 
                         // Right square becomes green, left resets to grey
                         $("#weapon-slot").css("border-color", "gray");
                         $("#item-slot").css("border-color", "green");
                         weaponSelected = 0;
+                        Socket.changePlayerSprite(playerId, statusMap[potionType]);
                         //send event ("equip item") to websocket
                     }
                 }
@@ -397,30 +410,30 @@
 
                                 weaponType = weapon.weaponType;        // store current weapon type
                                 console.log("You picked up weapon: " + weaponType);
-                                let status = 0;
+                                let status = statusMap[weaponType];
                                 //set ammo
                                 if (weaponType == "AR"){
                                     ammo = 25; //set ammo count
-                                    $("#weapon-slot > img").hide(); //hide all weapons
+                                    $("#weapon-slot > .icon").hide(); //hide all weapons
                                     $("#AR-icon").show();
-                                    status = 2;
+                                    //status = 2;
                                 } else if (weaponType == "SMG"){
                                     ammo = 30;
-                                    $("#weapon-slot > img").hide(); //hide all weapons
+                                    $("#weapon-slot > .icon").hide(); //hide all weapons
                                     $("#SMG-icon").show();
-                                    status = 1;
+                                    //status = 1;
                                 } else {
                                     ammo = 6;
-                                    $("#weapon-slot > img").hide(); //hide all weapons
+                                    $("#weapon-slot > .icon").hide(); //hide all weapons
                                     $("#shotgun-icon").show();
-                                    status = 3;
+                                    //status = 3;
                                 }
                                 $("#ammo-counter").text(ammo); //update ammo-counter in html
 
                                 
                                 const newWeaponType = weapon.randomize();
                                 Socket.sendWeaponPickup(weaponPos.x, weaponPos.y, newWeaponType);
-                                Socket.changePlayerSprite(playerId, status);
+                                if (weaponSelected) Socket.changePlayerSprite(playerId, status);
                                 //console.log("New weapon spawned: " + newWeaponType);
                                 //weapon.setXY(-1000, -1000); will fix later
                                 // Respawn after 10 seconds
@@ -443,34 +456,32 @@
                             if ((player1.getBoundingBox().isPointInBox(potionPos.x, potionPos.y) && playerId == 1) ||
                                 (player2.getBoundingBox().isPointInBox(potionPos.x, potionPos.y) && playerId == 2)) {
                                 // Play collect sound (to be changed later)
-                                sounds.weaponPickup.currentTime = 0;     // play from the start 
-                                sounds.weaponPickup.play(); 
+                                sounds.potionPickup.currentTime = 0.5;     // play from the 0.5 secs mark
+                                sounds.potionPickup.play(); 
                                 // Socket.sendWeaponPickup(weaponPos.x, weaponPos.y);
                                 // console.log(`before pick, weapon${JSON.stringify(weapon)})`);
                                 // console.log(`before pick, window weapon${JSON.stringify(window.weapons)})`);
 
                                 potionType = potion.potionType;        // store current weapon type
                                 console.log("You picked up potion: " + potionType);
-                                let status = 0;
+                                let status = statusMap[potionType];
                                 //set ammo
                                 if (potionType == "green"){
-                                    // to be changed 
-                                    //$("#weapon-slot > img").hide(); //hide all weapons
-                                    //$("#AR-icon").show();
-                                    status = 4;    // defPotionHold
+                                    $("#item-slot > .icon").hide(); //hide all potions
+                                    $("#green-potion-icon").show();
                                 } else if (potionType == "purple"){
-                                    //$("#weapon-slot > img").hide(); //hide all weapons
-                                    //$("#SMG-icon").show();
-                                    status = 8;    // spdPotionHold
+                                    $("#item-slot > .icon").hide(); //hide all potions
+                                    $("#purple-potion-icon").show();
                                 } else {
-                                    //$("#weapon-slot > img").hide(); //hide all weapons
-                                    //$("#shotgun-icon").show();
-                                    status = 6;    // ragPotionHold
+                                    $("#item-slot > .icon").hide(); //hide all potions
+                                    $("#orange-potion-icon").show();
                                 }
                                 
                                 const newPotionType = potion.randomize();
                                 Socket.sendPotionPickup(potionPos.x, potionPos.y, newPotionType);
-                                Socket.changePlayerSprite(playerId, status);
+                                if (!weaponSelected){ //not weapon selected - meaning the player selected their item slot
+                                    Socket.changePlayerSprite(playerId, status); //change sprite
+                                }
                                 //console.log("New weapon spawned: " + newWeaponType);
                                 //weapon.setXY(-1000, -1000); will fix later
                                 // Respawn after 10 seconds
@@ -720,13 +731,13 @@
                     const bulletPos = bullets[i].getXY();
                     if (bullets[i].getBoundingBox().isPointInBox(player1.getXY().x, player1.getXY().y) && bullets[i].getShooterId() != 1) {
                         player1.getHit(bullets[i].bulletType);
-                        bullets[i].remove();
+                        bullets[i].remove(); //kill the bullet
                         //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
                         //bullets.splice(i, 1); // Remove dead bullet
                     }
                     else if (bullets[i].getBoundingBox().isPointInBox(player2.getXY().x, player2.getXY().y) && bullets[i].getShooterId() != 2) {
                         player2.getHit(bullets[i].bulletType);
-                        bullets[i].remove();
+                        bullets[i].remove(); //kill the bullet
                         //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
                         //bullets.splice(i, 1); // Remove dead bullet
                     }

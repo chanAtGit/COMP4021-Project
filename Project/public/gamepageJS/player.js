@@ -127,7 +127,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     const getHit = (weaponType) => {
         console.log('player ' + id + ' got hit');
         if (weaponType === "SMG") {
-            health -= 10;
+            health -= 12;
             //console.log('player ' + id + ' hit with SMG');
         }
         else if (weaponType === "AR") {
@@ -199,13 +199,13 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         // console.log("Attempting to fire at time " + time + "with wweapon " + weaponType);
 
         if (weaponType === "SMG") {
-            fireRate = 0.1;
+            fireRate = 0.08;
         }
         else if (weaponType === "AR") {
-            fireRate = 0.2;    
+            fireRate = 0.18;    
         }
         else { //shotgun
-            fireRate = 0.5;     
+            fireRate = 0.75;     
         }
 
         if (time - lastFireTime < fireRate) {
