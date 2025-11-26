@@ -195,6 +195,9 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     };
 
     const fire = function(time, weaponType) {
+        if (health <= 0){
+            return false;
+        }
         let fireRate;
         // console.log("Attempting to fire at time " + time + "with wweapon " + weaponType);
 
