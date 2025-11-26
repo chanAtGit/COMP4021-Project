@@ -65,8 +65,8 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     // This is the health of the player
     let health = 100;
 
-    // for firing bullets
-    //let lastFireTime = 0;
+    //for firing bullets
+    let lastFireTime = 0;
 
     // This function sets the player's moving direction.
     // - `dir` - the moving direction (1: Left, 2: Up, 3: Right, 4: Down)
@@ -118,30 +118,37 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     };
 
     const getHit = (weaponType) => {
+        console.log('player ' + id + ' got hit');
         if (weaponType === "SMG") {
-            health -= 15;
+            health -= 10;
+            //console.log('player ' + id + ' hit with SMG');
         }
         else if (weaponType === "AR") {
             health -= 20;
+            //console.log('player ' + id + ' hit with AR');
         }
-        else {
-            health -= 10;
+        else if (weaponType === "shotgun"){ //shotgun
+            health -= 40;
+            //console.log('player ' + id + 'hit with Shotgun');
         }
         if (health <= 0) {
             health = 0;
-            setStatusSprite(10);
+            setStatusSprite(10); //death sprite
+            speed = 0; //stop them from moving
             console.log('player ' + id + ' is dead');
         }
     }
 
     const setAngle = function(mouseX, mouseY) { //accept mouse x and y coordinates as parameters
-        let { x, y } = sprite.getXY();
-        const dy = mouseY - y;
-        const dx = mouseX - x;
-        if (dx >= 0){
-            angle = Math.PI/2 + Math.atan(dy/dx); //angle measured between the player and the mouse
-        } else {
-            angle = -Math.PI/2 + Math.atan(dy/dx);
+        if (health > 0){ //if health = 0, stop them from moving
+            let { x, y } = sprite.getXY();
+            const dy = mouseY - y;
+            const dx = mouseX - x;
+            if (dx >= 0){
+                angle = Math.PI/2 + Math.atan(dy/dx); //angle measured between the player and the mouse
+            } else {
+                angle = -Math.PI/2 + Math.atan(dy/dx);
+            }           
         }
     };
 
@@ -181,18 +188,17 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     };
 
     const fire = function(time, weaponType) {
-        /*
         let fireRate;
         // console.log("Attempting to fire at time " + time + "with wweapon " + weaponType);
 
         if (weaponType === "SMG") {
-            fireRate = 0.2;
+            fireRate = 0.1;
         }
         else if (weaponType === "AR") {
-            fireRate = 0.5;    
+            fireRate = 0.2;    
         }
-        else {
-            fireRate = 0.75;     
+        else { //shotgun
+            fireRate = 0.5;     
         }
 
         if (time - lastFireTime < fireRate) {
@@ -202,8 +208,8 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
             lastFireTime = time;
             // console.log("lastFireTime updated to " + lastFireTime);
             return true; // can fire
-        }*/
-       return true;
+        }
+       //return true;
     }
 
     // The methods are returned as an object here.

@@ -493,6 +493,7 @@
                 if (event.button === 0) { // Left mouse button
                     isShooting = true;
                     shoot(); // Shoot immediately on press
+                    /*
                     let firing_period;
                     if (weaponType == "AR"){
                         firing_period = 175; //set firing period
@@ -500,8 +501,8 @@
                         firing_period = 125;
                     } else {
                         firing_period = 450;
-                    }
-                    shootInterval = setInterval(shoot, firing_period); //set firing rate
+                    }*/
+                    shootInterval = setInterval(shoot, 50); //call shoot again
                 }
             });
 
@@ -721,11 +722,13 @@
                     const bulletPos = bullets[i].getXY();
                     if (bullets[i].getBoundingBox().isPointInBox(player1.getXY().x, player1.getXY().y) && bullets[i].getShooterId() != 1) {
                         player1.getHit(bullets[i].bulletType);
+                        bullets[i].remove();
                         //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
                         //bullets.splice(i, 1); // Remove dead bullet
                     }
                     else if (bullets[i].getBoundingBox().isPointInBox(player2.getXY().x, player2.getXY().y) && bullets[i].getShooterId() != 2) {
                         player2.getHit(bullets[i].bulletType);
+                        bullets[i].remove();
                         //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
                         //bullets.splice(i, 1); // Remove dead bullet
                     }

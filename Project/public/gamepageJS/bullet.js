@@ -54,6 +54,11 @@ const Bullet = function(ctx, x, y, angle, shooterId, bulletType, gameArea, obsta
 
     let isAlive = true; 
 
+    const remove = function(){
+        isAlive = false;
+    }
+
+
     // This function updates the bullet.
     // - `time` - The timestamp when this function is called
     const update = function(time, dt) {
@@ -107,8 +112,10 @@ const Bullet = function(ctx, x, y, angle, shooterId, bulletType, gameArea, obsta
         setXY: sprite.setXY,
         getBoundingBox: sprite.getBoundingBox,
         getShooterId: () => shooterId,
+        bulletType: bulletType,
         draw: draw,
         update: update, 
-        isAlive: () => isAlive
+        isAlive: () => isAlive,
+        remove:remove
     };
 };
