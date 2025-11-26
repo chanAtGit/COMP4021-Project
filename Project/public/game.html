@@ -619,13 +619,11 @@
                 ammo = 0; //reset ammo
                 $("#ammo-counter").text(ammo); //update ammo-counter 
                 // add randomize weapon and potion ? 
-                player1.stop(); 
-                player2.stop();
                 player1.setXY(p1_init_pos.x, p1_init_pos.y);
                 player2.setXY(p2_init_pos.x, p2_init_pos.y);
                 //add function to return every player to their original state (position, sprite, health, potion effect, no weapons or items)
-                player1.setStatusSprite(0);
-                player2.setStatusSprite(0);
+                player1.restore();
+                player2.restore();
             }
 
             let countdown = 3;

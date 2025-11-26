@@ -117,6 +117,13 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         speed = 320;
     };
 
+    const restore = function(){
+        stop(); //stop player movement
+        speedReset(); //restore speed
+        health = 100; //restore health
+        setStatusSprite(0); //restore sprite to no items
+    }
+
     const getHit = (weaponType) => {
         console.log('player ' + id + ' got hit');
         if (weaponType === "SMG") {
@@ -228,6 +235,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         getAngle: () => angle, 
         setStatusSprite: setStatusSprite,
         fire: fire,
-        getHit: getHit
+        getHit: getHit,
+        restore: restore
     };
 };
