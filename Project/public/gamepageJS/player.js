@@ -128,18 +128,31 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         suddenDeath = 0;
     }
 
+    const SMGDamage = 12;
+    const ARDamage = 20;
+    const ShotgunDamage = 40;
+
     const getHit = (weaponType) => {
         console.log('player ' + id + ' got hit');
         if (weaponType === "SMG") {
-            health -= 12;
+            health -= SMGDamage;
+            if (suddenDeath){ //double damage in sudden death
+                health -= SMGDamage;
+            }
             //console.log('player ' + id + ' hit with SMG');
         }
         else if (weaponType === "AR") {
-            health -= 20;
+            health -= ARDamage;
+            if (suddenDeath){ //double damage
+                health -= ARDamage;
+            }
             //console.log('player ' + id + ' hit with AR');
         }
         else if (weaponType === "shotgun"){ //shotgun
-            health -= 40;
+            health -= ShotgunDamage;
+            if (suddenDeath){ //double damage 
+                health -= ShotgunDamage;
+            }
             //console.log('player ' + id + 'hit with Shotgun');
         }
         if (health <= 0) {

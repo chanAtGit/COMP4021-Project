@@ -246,7 +246,7 @@
             const context = cv.getContext("2d");
 
             let gameActive = false; //whether game is active or not. decides whether the player can interact yet.
-            const totalRoundTime = 70;   // Total game time in seconds. originally 70
+            const totalRoundTime = 20;   // Total game time in seconds. originally 70
             const itemMaxAge = 20000;   // 20 sec 
             let roundStartTime = 0;      // The timestamp when the game starts
             let round_num = 1;
@@ -802,7 +802,6 @@
 
                     if (timeRemaining <= 15 && !suddenDeath){ //last 15 seconds - sudden death mode
                         obstacles = []; //clear obstacles. remove all obstacles.
-                        //add function here to double player damage
                         suddenDeath = 1;
                         player1.setSuddenDeath();
                         player2.setSuddenDeath();
