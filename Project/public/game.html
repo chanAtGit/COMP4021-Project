@@ -363,7 +363,7 @@
                     }
                     //slot handling
                     if (keys['q']) {
-                        if (weaponType){ //the user has a weapon
+                        if (weaponType && !weaponSelected){ //the user has a weapon and was on item slot
                             sounds.weaponPickup.currentTime = 0;     // play from the start
                             sounds.weaponPickup.play(); 
                         } 
@@ -374,7 +374,7 @@
                         Socket.changePlayerSprite(playerId, statusMap[weaponType]);
                     //send event ("equip weapon") to websocket
                     } else if (keys['e']) {
-                        if (potionType){ //the user has a potion
+                        if (potionType && weaponSelected){ //the user has a potion and was on weapon slot
                             sounds.potionPickup.currentTime = 0.5;     // play from the 0.5 secs mark
                             sounds.potionPickup.play(); 
                         } 
@@ -455,14 +455,18 @@
                             const potionPos = potion.getXY();
                             if ((player1.getBoundingBox().isPointInBox(potionPos.x, potionPos.y) && playerId == 1) ||
                                 (player2.getBoundingBox().isPointInBox(potionPos.x, potionPos.y) && playerId == 2)) {
-                                // Play collect sound (to be changed later)
-                                sounds.potionPickup.currentTime = 0.5;     // play from the 0.5 secs mark
-                                sounds.potionPickup.play(); 
                                 // Socket.sendWeaponPickup(weaponPos.x, weaponPos.y);
                                 // console.log(`before pick, weapon${JSON.stringify(weapon)})`);
                                 // console.log(`before pick, window weapon${JSON.stringify(window.weapons)})`);
 
+                                if (potionType === potion.potionType){
+                                    return; //user cannot pick up the same potion.
+                                }
                                 potionType = potion.potionType;        // store current weapon type
+                                
+                                // Play collect sound (to be changed later)
+                                sounds.potionPickup.currentTime = 0.5;     // play from the 0.5 secs mark
+                                sounds.potionPickup.play(); 
                                 console.log("You picked up potion: " + potionType);
                                 let status = statusMap[potionType];
                                 //set ammo
@@ -624,12 +628,15 @@
 
             /*Global functions END*/
 
-            function revertPlayersPos(){
+            function restartRound(){
                 weaponType = null; //reset weapon type
                 potionType = null; //reset potion type
                 ammo = 0; //reset ammo
                 $("#ammo-counter").text(ammo); //update ammo-counter 
+                $(".icon").hide(); //hide all weapons and potion icons
                 // add randomize weapon and potion ? 
+                player1.stop();
+                player2.stop();
                 player1.setXY(p1_init_pos.x, p1_init_pos.y);
                 player2.setXY(p2_init_pos.x, p2_init_pos.y);
                 //add function to return every player to their original state (position, sprite, health, potion effect, no weapons or items)
@@ -690,10 +697,9 @@
                         if (round_num <= 3){ //not final round
                             roundStartTime = 0; //reset roundStartTime
                             gameActive = false;
-                            $("#weapon-slot > img").hide(); //hide all weapons
                             $("#time-remaining").text(totalRoundTime);
                             $(".round-text").show(); //show round-text
-                            revertPlayersPos();
+                            restartRound();
                             setTimeout(handleRoundStart, 1000);
                         } else {
                             // Stop the game

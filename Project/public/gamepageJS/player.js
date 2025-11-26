@@ -202,7 +202,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         // console.log("Attempting to fire at time " + time + "with wweapon " + weaponType);
 
         if (weaponType === "SMG") {
-            fireRate = 0.08;
+            fireRate = 0.1;
         }
         else if (weaponType === "AR") {
             fireRate = 0.18;    
