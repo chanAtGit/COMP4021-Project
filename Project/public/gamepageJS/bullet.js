@@ -3,7 +3,7 @@
 // - `x` - The initial x position of the bullet
 // - `y` - The initial y position of the bullet
 // - `gameArea` - The bounding box of the game area
-const Bullet = function(ctx, x, y, angle, bulletType, gameArea, obstacles) {
+const Bullet = function(ctx, x, y, angle, shooterId, bulletType, gameArea, obstacles) {
 
     // This is the sprite sequences of the 3 bullets
     // AR,SMG, shotgun.
@@ -106,6 +106,7 @@ const Bullet = function(ctx, x, y, angle, bulletType, gameArea, obstacles) {
         getXY: sprite.getXY,
         setXY: sprite.setXY,
         getBoundingBox: sprite.getBoundingBox,
+        getShooterId: () => shooterId,
         draw: draw,
         update: update, 
         isAlive: () => isAlive

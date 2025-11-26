@@ -535,7 +535,7 @@
                             const playerPos = player1.getXY();
                             const angle = player1.getAngle();
                             //const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
-                            Socket.pushBullet(playerPos.x, playerPos.y, angle, weaponType); //pass bullet object parameters to websocket
+                            Socket.pushBullet(playerPos.x, playerPos.y, angle, playerId, weaponType); //pass bullet object parameters to websocket
                             //bullets.push(bullet); //to be deleted
                             ammo--;
                             $("#ammo-counter").text(ammo); //update ammo-counter in html
@@ -547,7 +547,7 @@
                             const playerPos = player2.getXY();
                             const angle = player2.getAngle();
                             //const bullet = Bullet(context, playerPos.x, playerPos.y, angle, weaponType, gameArea, obstacles);
-                            Socket.pushBullet(playerPos.x, playerPos.y, angle, weaponType); 
+                            Socket.pushBullet(playerPos.x, playerPos.y, angle, playerId, weaponType); 
                             //bullets.push(bullet); //to be deleted
                             ammo--;
                             $("#ammo-counter").text(ammo); //update ammo-counter in html
@@ -592,13 +592,13 @@
                 }
             };
 
-            window.addBullet = function(x,y,angle,weaponType){
+            window.addBullet = function(x,y,angle,shooterId,weaponType){
                 //play gun sound
                 let gunSound = sounds[weaponType]; 
                 gunSound.currentTime = 0;     // play from the start
                 gunSound.play();
                 //push bullet to bullets array
-                const bullet = Bullet(context, x, y, angle, weaponType, gameArea, obstacles);
+                const bullet = Bullet(context, x, y, angle, shooterId, weaponType, gameArea, obstacles);
                 bullets.push(bullet);
             };
 
@@ -716,6 +716,21 @@
                 });
                 for (let i = bullets.length - 1; i >= 0; i--) {
                     bullets[i].update(now, dt);
+
+                    // check if bullet hit player
+                    const bulletPos = bullets[i].getXY();
+                    if (bullets[i].getBoundingBox().isPointInBox(player1.getXY().x, player1.getXY().y) && bullets[i].getShooterId() != 1) {
+                        player1.getHit(bullets[i].bulletType);
+                        //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
+                        //bullets.splice(i, 1); // Remove dead bullet
+                    }
+                    else if (bullets[i].getBoundingBox().isPointInBox(player2.getXY().x, player2.getXY().y) && bullets[i].getShooterId() != 2) {
+                        player2.getHit(bullets[i].bulletType);
+                        //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
+                        //bullets.splice(i, 1); // Remove dead bullet
+                    }
+
+                    // check if bullet alive
                     if (!bullets[i].isAlive()) {
                         bullets.splice(i, 1); // Remove dead bullet
                     }

@@ -62,6 +62,9 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     // This is the rotation angle (radian) of the player
     let angle = 0;
 
+    // This is the health of the player
+    let health = 100;
+
     // for firing bullets
     //let lastFireTime = 0;
 
@@ -113,6 +116,23 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     const speedReset = function() {
         speed = 320;
     };
+
+    const getHit = (weaponType) => {
+        if (weaponType === "SMG") {
+            health -= 15;
+        }
+        else if (weaponType === "AR") {
+            health -= 20;
+        }
+        else {
+            health -= 10;
+        }
+        if (health <= 0) {
+            health = 0;
+            setStatusSprite(10);
+            console.log('player ' + id + ' is dead');
+        }
+    }
 
     const setAngle = function(mouseX, mouseY) { //accept mouse x and y coordinates as parameters
         let { x, y } = sprite.getXY();
@@ -201,6 +221,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         update: update, 
         getAngle: () => angle, 
         setStatusSprite: setStatusSprite,
-        fire: fire
+        fire: fire,
+        getHit: getHit
     };
 };

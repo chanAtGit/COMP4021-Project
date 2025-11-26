@@ -314,8 +314,8 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("get bullet", (x,y,angle,weaponType) => {
-        io.emit("push bullet", x,y,angle,weaponType); //push bullet to everyone ie. both players
+    socket.on("get bullet", (x,y,angle,shooterId,weaponType) => {
+        io.emit("push bullet", x,y,angle,shooterId,weaponType); //push bullet to everyone ie. both players
     });
 
     socket.on("get playerSprite", (playerId, playerStatus) => {

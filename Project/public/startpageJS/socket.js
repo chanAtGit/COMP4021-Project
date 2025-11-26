@@ -173,10 +173,10 @@ const Socket = (function() {
             }
         });
 
-        socket.on("push bullet", (x,y,angle,weaponType) => {
+        socket.on("push bullet", (x,y,angle,shooterId,weaponType) => {
             //const bullet = JSON.parse(bullet_json);
             //console.log("pushing bullet");
-            window.addBullet(x,y,angle,weaponType);
+            window.addBullet(x,y,angle,shooterId,weaponType);
         });
 
         socket.on("change playerSprite", (playerId, playerStatus) => {
@@ -259,10 +259,10 @@ const Socket = (function() {
         }
     };
 
-    const pushBullet = function(x,y,angle,weaponType){
+    const pushBullet = function(x,y,angle,shooterId,weaponType){
         if (socket && socket.connected) {
             //console.log("Bullet info received by socket");
-            socket.emit("get bullet", x,y,angle,weaponType); //send server message to update player movement
+            socket.emit("get bullet", x,y,angle,shooterId,weaponType); //send server message to update player movement
         }
     };
 
