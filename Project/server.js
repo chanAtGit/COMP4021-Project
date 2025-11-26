@@ -28,10 +28,11 @@ const setPotionType = function(potionType) {
     sprite.setSequence(sequences[potionType]);
     birthTime = Date.now();
 };
-const randomize = function() {
-    /* Randomize the type */
-    setPotionType(potionTypes[Math.floor(Math.random() * 3)]);
-};
+
+/*const randomize = function() {
+    /* Randomize the type*/
+    //setPotionType(potionTypes[Math.floor(Math.random() * 3)]);
+//};*/
 setInterval(() => {
     potions.forEach((potion, index) => {
         if (Date.now() - potion.birthTime >= itemMaxAge) {
@@ -48,16 +49,18 @@ const weaponPoints = [
     {x: 1100, y: 160}
 ];
 const weaponTypes = ["AR", "SMG", "shotgun"];
-const setWeaponType = function(weaponType) {
+/*const setWeaponType = function(weaponType) {
     sprite.setSequence(sequences[weaponType]);
     birthTime = Date.now();
-};
+};*/
 let weapons = weaponPoints.map((point) => ({ //add i as unique id
     x: point.x,
     y: point.y,
     type: weaponTypes[0], //AR for now. Will be randomised on every initialisation
     birthTime: Date.now() // For age tracking
 }));
+
+let playerPosData = {};
 
 // Use the 'public' folder to serve static files
 app.use(express.static("public"));
@@ -320,6 +323,18 @@ io.on("connection", (socket) => {
 
     socket.on("get playerSprite", (playerId, playerStatus) => {
         io.emit("change playerSprite", playerId, playerStatus);
+    });
+
+    socket.on("post playerPos", (playerId, playersPos) => {
+        const clientPlayerPos = JSON.parse(playersPos);
+        if (playerId == 1){
+            playerPosData = {...clientPlayerPos}; //copy playerPos. Server gives priority to player 1
+        } else {
+            if (playerPosData.length == 0){ //if playerPosData is empty at the moment
+                playerPosData = {...clientPlayerPos}; //copy
+            }
+        }
+        io.emit("sync playerPos", JSON.stringify(playerPosData));
     });
 
 });

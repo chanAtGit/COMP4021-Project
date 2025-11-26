@@ -182,6 +182,10 @@ const Socket = (function() {
         socket.on("change playerSprite", (playerId, playerStatus) => {
             window.changePlayerSprite(playerId, playerStatus);
         });
+
+        socket.on("sync playerPos", (playerPosData) => {
+            window.syncPlayersPos(playerPosData);
+        });
     };
 
     // This function disconnects the socket from the server
@@ -286,6 +290,12 @@ const Socket = (function() {
         }
     };
 
+    const syncPos = function(playerId, playerPosData){
+        if (socket && socket.connected){
+            socket.emit("post playerPos", playerId, playerPosData);
+        }
+    };
+
     // This function sends a post message event to the server
     /*
     const postMessage = function(content) {
@@ -314,6 +324,7 @@ const Socket = (function() {
         changePlayerSprite, 
         sendPotionPickup,
         sendWeaponUpdate, 
-        sendPotionUpdate
+        sendPotionUpdate,
+        syncPos
     };
 })();

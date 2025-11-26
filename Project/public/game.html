@@ -80,6 +80,12 @@
             display: none;
         }
 
+        #sudden-death-tag{
+            fill: yellow;
+            stroke: yellow;
+            display: none;
+        }
+
         .round-text, #result-text{
             position: fixed;
             top: 50%;
@@ -186,6 +192,8 @@
             <text x="465" y="40">
                 <tspan id="player1-score">0</tspan> - <tspan id="player2-score">0</tspan>
             </text>
+
+            <text x="415" y="50"><tspan id = "sudden-death-tag">SUDDEN DEATH</tspan></text>
         </svg>
 
         <!-- Round Text -->
@@ -238,7 +246,7 @@
             const context = cv.getContext("2d");
 
             let gameActive = false; //whether game is active or not. decides whether the player can interact yet.
-            const totalRoundTime = 70;   // Total game time in seconds. originally 70
+            const totalRoundTime = 20;   // Total game time in seconds. originally 70
             const itemMaxAge = 20000;   // 20 sec 
             let roundStartTime = 0;      // The timestamp when the game starts
             let round_num = 1;
@@ -274,7 +282,7 @@
             };
 
             /* create sprites */
-            const obstacles = [ //obstacles
+            let obstacles = [ //obstacles
                 //Four corners
                 Crate(context, left, top, 3),
                 Crate(context, right, top, 3),
@@ -316,7 +324,7 @@
                 Crate(context, (right+left)/4*3, (top+bottom)/2, 3),
                 Crate(context, (right+left)/4*3 - 64*3/2, (top+bottom)/2 + 64*3/2, 1)
             ];
-
+            const saved_obstacles = [...obstacles]; //used to restore obstacles after sudden death
             const p1_init_pos = {x: left, y: top + 128*3};
             //const player2_init_pos = {x: right, y: bottom - 128*3}; //true initial location
             const p2_init_pos = {x: left+200, y: bottom - 128*3}; //test initial location
@@ -368,6 +376,8 @@
                 //console.log("Mouse position: X=" + mouseX + ", Y=" + mouseY);
             });
 
+            let infBullet = 0;
+            let saved_ammo = null;
             let weaponSelected = 1; //whether the player is selected their weapon slot
             /* key control */
             const keys = {}; // Object to keep track of pressed keys
@@ -400,6 +410,15 @@
                         weaponSelected = 0;
                         Socket.changePlayerSprite(playerId, statusMap[potionType]);
                         //send event ("equip item") to websocket
+                    } else if (keys['i']){ //CHEAT KEY. Toggle infinite ammo
+                        infBullet = !infBullet;
+                        if (infBullet){
+                            saved_ammo = ammo;
+                            ammo = Infinity; //infinite ammo
+                        } else {
+                            ammo = saved_ammo;
+                        }
+                        $("#ammo-counter").text(ammo);
                     }
                 }
             });
@@ -429,22 +448,34 @@
                                 let status = statusMap[weaponType];
                                 //set ammo
                                 if (weaponType == "AR"){
-                                    ammo = 25; //set ammo count
+                                    if (!infBullet){
+                                        ammo = 25; //set ammo count
+                                    } else {
+                                        saved_ammo = 25; //set ammo count
+                                    }
                                     $("#weapon-slot > .icon").hide(); //hide all weapons
                                     $("#AR-icon").show();
                                     //status = 2;
                                 } else if (weaponType == "SMG"){
-                                    ammo = 30;
+                                    if (!infBullet){
+                                        ammo = 30;
+                                    } else {
+                                        saved_ammo = 25; //set ammo count
+                                    }
                                     $("#weapon-slot > .icon").hide(); //hide all weapons
                                     $("#SMG-icon").show();
                                     //status = 1;
                                 } else {
-                                    ammo = 6;
+                                    if (!infBullet){
+                                        ammo = 6;
+                                    } else {
+                                        saved_ammo = 6; //set ammo count
+                                    }
                                     $("#weapon-slot > .icon").hide(); //hide all weapons
                                     $("#shotgun-icon").show();
                                     //status = 3;
                                 }
-                                $("#ammo-counter").text(ammo); //update ammo-counter in html
+                                if(!infBullet) $("#ammo-counter").text(ammo); //update ammo-counter in html
 
                                 
                                 const newWeaponType = weapon.randomize();
@@ -619,11 +650,11 @@
                 if (player_num == 1){ //player 1
                     console.log(startX);
                     const currentEndX = startX + Math.floor((health / 100) * (p1_hpLine_x2_init - startX));
-                    console.log(currentEndX);
+                    //console.log(currentEndX);
                     hpLine.attr("x2", currentEndX);
                 } else { //player 2
                     const currentStartX = endX - Math.floor((health / 100) * (endX - p2_hpLine_x1_init));
-                    console.log(currentStartX);
+                    //console.log(currentStartX);
                     hpLine.attr("x1", currentStartX);
                 }
             }
@@ -665,17 +696,28 @@
                 }
             };
 
+            window.syncPlayersPos = function(playerPosJSON){
+                const playerPosData = JSON.parse(playerPosJSON);
+
+                player1.setXY(playerPosData.player1[0], playerPosData.player1[1]);
+                player2.setXY(playerPosData.player2[0], playerPosData.player2[1]);
+            };
+
             /*Global functions END*/
 
             function restartRound(){
+                player1.stop();
+                player2.stop();
                 weaponType = null; //reset weapon type
                 potionType = null; //reset potion type
                 ammo = 0; //reset ammo
+                infBullet = 0; //turn off infinite bullet
+                suddenDeath = 0; //turn off sudden death
+                $("#sudden-death-tag").hide();
+                obstacles = [...saved_obstacles]; //restore obstacles
                 $("#ammo-counter").text(ammo); //update ammo-counter 
                 $(".icon").hide(); //hide all weapons and potion icons
                 // add randomize weapon and potion ? 
-                player1.stop();
-                player2.stop();
                 player1.setXY(p1_init_pos.x, p1_init_pos.y);
                 player2.setXY(p2_init_pos.x, p2_init_pos.y);
                 //add function to return every player to their original state (position, sprite, health, potion effect, no weapons or items)
@@ -685,6 +727,7 @@
                 $(`#player1-hpLine`).attr("x2", p1_hpLine_x2_init); //restore health bar
                 $("#player2-HP").text(player2.getHP()); //update health display
                 $(`#player2-hpLine`).attr("x1", p2_hpLine_x1_init); //restore health bar
+                SyncPlayers();
             }
 
             let countdown = 3;
@@ -702,6 +745,19 @@
                     $(".round-text").hide();
                     gameActive = true;
                 }
+            }
+
+            function SyncPlayers(){
+                const player1Pos = player1.getXY();
+                    const player2Pos = player2.getXY();
+                    const player1HP = player1.getHP();
+                    const player2HP = player2.getHP();
+                    //console.log(player1HP);
+                    const players_pos = {
+                        player1: [player1Pos.x, player1Pos.y, player1HP],
+                        player2: [player2Pos.x, player2Pos.y, player2HP]
+                    }
+                    Socket.syncPos(playerId, JSON.stringify(players_pos));
             }
 
             //Get Player Id
@@ -723,7 +779,7 @@
             let lastTime = 0;
             let earlyFinishTimer = null;
             let earlyFinish = 0;
-
+            let suddenDeath = 0;
             /* main processing of the game */
             function doFrame(now){
                 const dt = (now - lastTime) / 1000;   // delta time in seconds. Make player and bullet speed independent of framerate.
@@ -738,6 +794,15 @@
                     const roundTimeSoFar = now - roundStartTime;
                     timeRemaining = Math.ceil((totalRoundTime * 1000 - roundTimeSoFar) / 1000);
                     $("#time-remaining").text(timeRemaining);
+
+                    if (timeRemaining <= 15 && !suddenDeath){ //last 15 seconds - sudden death mode
+                        obstacles = []; //clear obstacles. remove all obstacles.
+                        //add function here to double player damage
+                        suddenDeath = 1;
+                        player1.setSuddenDeath();
+                        player2.setSuddenDeath();
+                        $("#sudden-death-tag").show();
+                    }
 
                     if (timeRemaining <= 0 || earlyFinish){ //round duration is over or round finishes early
                         if (round_num <= 3 && (player1_score < 2) && (player2_score < 2)){ //not final round and neither player has scored 2
@@ -762,9 +827,13 @@
                         } else {
                             // Stop the game
                             cancelAnimationFrame(animationId);
-
+                            restartRound(); //restart round for the next game
                             // Optional: Show game over message
-                            alert("Game Over!");
+                            if (player1_score == 2){
+                                alert("Game Over! P1 won the game.");
+                            } else {
+                                alert("Game Over! P2 won the game.");
+                            }   
 
                             // Remove event listeners to stop interaction
                             $(document).off("keydown keyup mousemove");
@@ -782,6 +851,7 @@
                 /* update sprites */
                 player1.update(now, dt);
                 player2.update(now, dt); //will update to dt if it works.
+
                 window.weapons.forEach((weapon) => {
                     weapon.update(now); 
                 });
@@ -806,13 +876,17 @@
                                 $("#result-text").show();
                                 player2_score++; //update score
                                 $("#player2-score").text( player2_score);
+                                let timerDuration;
                                 if (timeRemaining > 3){
-                                    earlyFinishTimer = setTimeout(()=>{
-                                        earlyFinish = 1;
-                                        console.log("Starting a new round!");
-                                        earlyFinishTimer = null; // Reset the timer reference
-                                    }, 3000); //give three seconds of downtime
+                                    timerDuration = 3000;
+                                } else {
+                                    timerDuration = (timeRemaining-1)*1000
                                 }
+                                earlyFinishTimer = setTimeout(()=>{
+                                    earlyFinish = 1;
+                                    console.log("Starting a new round!");
+                                    earlyFinishTimer = null; // Reset the timer reference
+                                }, timerDuration); //give three seconds of downtime
                             }
                         }
                     }
@@ -824,19 +898,23 @@
                             updateHPLine(2, player2.getHP());
                             //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
                             //bullets.splice(i, 1); // Remove dead bullet
-                            if (player2.isDead()){
+                            if (player2.isDead() && earlyFinishTimer === null){
                                 $("#result-text").css("color", "red");
                                 $("#result-text span").text("1"); //player 1 won the round
                                 $("#result-text").show();
                                 player1_score++; //update score
                                 $("#player1-score").text( player1_score);
+                                let timerDuration;
                                 if (timeRemaining > 3){
-                                    earlyFinishTimer = setTimeout(()=>{
-                                        earlyFinish = 1;
-                                        console.log("Starting a new round!");
-                                        earlyFinishTimer = null; // Reset the timer reference
-                                    }, 3000); //give three seconds of downtime
+                                    timerDuration = 3000;
+                                } else {
+                                    timerDuration = (timeRemaining-1)*1000;
                                 }
+                                earlyFinishTimer = setTimeout(()=>{
+                                    earlyFinish = 1;
+                                    console.log("Starting a new round!");
+                                    earlyFinishTimer = null; // Reset the timer reference
+                                }, timerDuration); //give three seconds of downtime
                             }   
                         }
                     }
@@ -865,6 +943,11 @@
                         //potion.setXY(potionPoints[index].x, potionPoints[index].y); 
                     }
                 });
+
+                //sync movements through socket
+                if (gameActive){
+                    SyncPlayers();
+                }
 
                 /* Clear the screen */
                 context.clearRect(0, 0, cv.width, cv.height);

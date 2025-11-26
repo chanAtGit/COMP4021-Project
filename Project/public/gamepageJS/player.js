@@ -68,6 +68,9 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     //for firing bullets
     let lastFireTime = 0;
 
+    //sudden death mode
+    let suddenDeath = 0;
+
     // This function sets the player's moving direction.
     // - `dir` - the moving direction (1: Left, 2: Up, 3: Right, 4: Down)
 
@@ -122,6 +125,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         speedReset(); //restore speed
         health = 100; //restore health
         setStatusSprite(0); //restore sprite to no items
+        suddenDeath = 0;
     }
 
     const getHit = (weaponType) => {
@@ -159,6 +163,10 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         }
     };
 
+    const setSuddenDeath = function(){
+        suddenDeath = 1;
+    }
+
     // This function updates the player depending on his movement.
     // - `time` - The timestamp when this function is called
     const update = function(time, dt) {
@@ -183,6 +191,9 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
                     }
                 }
                 if (!collideWithObstacle){
+                    sprite.setXY(x, y);
+                }
+                if (suddenDeath){ //in sudden death, there are no obstacles
                     sprite.setXY(x, y);
                 }
             } 
@@ -241,6 +252,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         getHit: getHit,
         restore: restore,
         getHP: () => health,
+        setSuddenDeath: setSuddenDeath,
         isDead: () => (health==0)
     };
 };
