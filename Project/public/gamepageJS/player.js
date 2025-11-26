@@ -239,6 +239,8 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         setStatusSprite: setStatusSprite,
         fire: fire,
         getHit: getHit,
-        restore: restore
+        restore: restore,
+        getHP: () => health,
+        isDead: () => (health==0)
     };
 };

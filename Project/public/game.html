@@ -80,18 +80,27 @@
             display: none;
         }
 
-        .round-text {
+        .round-text, #result-text{
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 100px;
             font-weight: bold;
-            color: white;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             z-index: 1000;
             pointer-events: none;
             display: block;
+        }
+
+        .round-text{
+            font-size: 100px;
+            color: white;
+        }
+
+        #result-text {
+            display: none;
+            font-size: 30px;
+            color: white;
         }
 
         #slot-container {
@@ -181,6 +190,7 @@
 
         <!-- Round Text -->
         <div class="round-text">ROUND 1</div>
+        <div id = "result-text">P<span></span> won this round!</div>
 
         <!-- Slot Container -->
         <div id="slot-container">
@@ -243,6 +253,10 @@
             const right = gameArea.getPoints().topRight[0]-64+20;
             const bottom = gameArea.getPoints().bottomLeft[1]-64+25;
             const top = gameArea.getPoints().topLeft[1]+64-25;
+
+            //initial hpLine values
+            const p1_hpLine_x2_init = 298;
+            const p2_hpLine_x1_init = 702;
 
             let weaponType = null; //store current weapon type
             let potionType = null; //store current potion type
@@ -308,6 +322,8 @@
             const p2_init_pos = {x: left+200, y: bottom - 128*3}; //test initial location
             const player1 = Player(context, p1_init_pos.x, p1_init_pos.y, 1, gameArea, obstacles); // The player 1
             const player2 = Player(context, p2_init_pos.x, p2_init_pos.y, 2, gameArea, obstacles); // The player 2 - test location
+            let player1_score = 0;
+            let player2_score = 0;
 
             window.weapons = [
                 Weapon(context, 427, 350, "AR"),       // weapon 1       
@@ -589,6 +605,29 @@
                 return {dx, dy};
             }
 
+            function updateHPLine(player_num, health) {
+                // Ensure health is within valid range (0-100)
+                health = Math.max(0, Math.min(100, health));
+                //console.log(`#player ${player_num} HP: ${health}`);
+    
+                // Get the SVG line element based on player ID
+                const hpLine = $(`#player${player_num}-hpLine`);
+                    // Get the original full width (you might need to adjust these values)
+                const startX = Number(hpLine.attr("x1"));
+                const endX = Number(hpLine.attr("x2"));
+
+                if (player_num == 1){ //player 1
+                    console.log(startX);
+                    const currentEndX = startX + Math.floor((health / 100) * (p1_hpLine_x2_init - startX));
+                    console.log(currentEndX);
+                    hpLine.attr("x2", currentEndX);
+                } else { //player 2
+                    const currentStartX = endX - Math.floor((health / 100) * (endX - p2_hpLine_x1_init));
+                    console.log(currentStartX);
+                    hpLine.attr("x1", currentStartX);
+                }
+            }
+
             /*Global functions that socket.js can call*/
             window.updatePlayerMovement = function(dx, dy, mouseX, mouseY, playerIndex) {
                 if (playerIndex === 1 && player1) {
@@ -642,6 +681,10 @@
                 //add function to return every player to their original state (position, sprite, health, potion effect, no weapons or items)
                 player1.restore();
                 player2.restore();
+                $("#player1-HP").text(player1.getHP()); //update health display
+                $(`#player1-hpLine`).attr("x2", p1_hpLine_x2_init); //restore health bar
+                $("#player2-HP").text(player2.getHP()); //update health display
+                $(`#player2-hpLine`).attr("x1", p2_hpLine_x1_init); //restore health bar
             }
 
             let countdown = 3;
@@ -674,15 +717,18 @@
                     }
                     Socket.getInitPotions();
                     Socket.getInitWeapons();
-                }, 100); //wait till the commmunication finishes
-            }, 100); //wait till connection with server
+                }, 150); //wait till the commmunication finishes
+            }, 150); //wait till connection with server
 
             let lastTime = 0;
+            let earlyFinishTimer = null;
+            let earlyFinish = 0;
 
             /* main processing of the game */
             function doFrame(now){
                 const dt = (now - lastTime) / 1000;   // delta time in seconds. Make player and bullet speed independent of framerate.
                 lastTime = now;
+                let timeRemaining;
                 /* Update the time remaining (if game is active) */
                 if (gameActive){
                     currentTime = now / 1000; //update current time in seconds
@@ -690,13 +736,25 @@
                     if (roundStartTime == 0) roundStartTime = now;
 
                     const roundTimeSoFar = now - roundStartTime;
-                    const timeRemaining = Math.ceil((totalRoundTime * 1000 - roundTimeSoFar) / 1000);
+                    timeRemaining = Math.ceil((totalRoundTime * 1000 - roundTimeSoFar) / 1000);
                     $("#time-remaining").text(timeRemaining);
 
-                    if (timeRemaining <= 0){ //game duration is over
-                        if (round_num <= 3){ //not final round
+                    if (timeRemaining <= 0 || earlyFinish){ //round duration is over or round finishes early
+                        if (round_num <= 3 && (player1_score < 2) && (player2_score < 2)){ //not final round and neither player has scored 2
+                            if (!earlyFinish){ //if the round did not end early but rather ended due to time out
+                                if (player1.getHP() >= player2.getHP()){
+                                    player1_score++;
+                                    $("#player1-score").text(player1_score);
+                                } else {
+                                    player2_score++;
+                                    $("#player2-score").text(player2_score);
+                                }
+                            }
+                            
                             roundStartTime = 0; //reset roundStartTime
                             gameActive = false;
+                            earlyFinish = 0; //reset earlyFinish
+                            $("#result-text").hide();
                             $("#time-remaining").text(totalRoundTime);
                             $(".round-text").show(); //show round-text
                             restartRound();
@@ -706,7 +764,7 @@
                             cancelAnimationFrame(animationId);
 
                             // Optional: Show game over message
-                            alert("Time's Up! Game Over");
+                            alert("Game Over!");
 
                             // Remove event listeners to stop interaction
                             $(document).off("keydown keyup mousemove");
@@ -732,20 +790,55 @@
                 });
                 for (let i = bullets.length - 1; i >= 0; i--) {
                     bullets[i].update(now, dt);
-
                     // check if bullet hit player
                     const bulletPos = bullets[i].getXY();
                     if (bullets[i].getBoundingBox().isPointInBox(player1.getXY().x, player1.getXY().y) && bullets[i].getShooterId() != 1) {
-                        player1.getHit(bullets[i].bulletType);
-                        bullets[i].remove(); //kill the bullet
-                        //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
-                        //bullets.splice(i, 1); // Remove dead bullet
+                        if (!player1.isDead()){
+                            player1.getHit(bullets[i].bulletType);
+                            bullets[i].remove(); //kill the bullet
+                            $("#player1-HP").text(player1.getHP()); //update health display
+                            updateHPLine(1, player1.getHP());
+                            //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
+                            //bullets.splice(i, 1); // Remove dead bullet
+                            if (player1.isDead() && earlyFinishTimer === null){ //Handle player death
+                                $("#result-text").css("color", "blue");
+                                $("#result-text span").text("2"); //player 2 won the round
+                                $("#result-text").show();
+                                player2_score++; //update score
+                                $("#player2-score").text( player2_score);
+                                if (timeRemaining > 3){
+                                    earlyFinishTimer = setTimeout(()=>{
+                                        earlyFinish = 1;
+                                        console.log("Starting a new round!");
+                                        earlyFinishTimer = null; // Reset the timer reference
+                                    }, 3000); //give three seconds of downtime
+                                }
+                            }
+                        }
                     }
                     else if (bullets[i].getBoundingBox().isPointInBox(player2.getXY().x, player2.getXY().y) && bullets[i].getShooterId() != 2) {
-                        player2.getHit(bullets[i].bulletType);
-                        bullets[i].remove(); //kill the bullet
-                        //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
-                        //bullets.splice(i, 1); // Remove dead bullet
+                        if (!player2.isDead()){
+                            player2.getHit(bullets[i].bulletType);
+                            bullets[i].remove(); //kill the bullet
+                            $("#player2-HP").text(player2.getHP()); //update health display
+                            updateHPLine(2, player2.getHP());
+                            //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
+                            //bullets.splice(i, 1); // Remove dead bullet
+                            if (player2.isDead()){
+                                $("#result-text").css("color", "red");
+                                $("#result-text span").text("1"); //player 1 won the round
+                                $("#result-text").show();
+                                player1_score++; //update score
+                                $("#player1-score").text( player1_score);
+                                if (timeRemaining > 3){
+                                    earlyFinishTimer = setTimeout(()=>{
+                                        earlyFinish = 1;
+                                        console.log("Starting a new round!");
+                                        earlyFinishTimer = null; // Reset the timer reference
+                                    }, 3000); //give three seconds of downtime
+                                }
+                            }   
+                        }
                     }
 
                     // check if bullet alive
