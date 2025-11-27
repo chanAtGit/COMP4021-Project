@@ -114,12 +114,12 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
 
     // This function speeds up the player by 30%. speed * 1.3
     const speedUp = function() {
-        speed *= 1.3;
+        speed *= 1.25;
     };
 
-    // This function slows down the player by 30%. speed * 0.7
+    // This function slows down the player by 20%. speed * 0.85
     const slowDown = function() {
-        speed *= 0.7;
+        speed *= 0.8;
     };
 
     const speedReset = function() {
@@ -136,11 +136,11 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     };
 
     const vulnerabilityUp = function() {
-        vulnerability *= 1.3;
+        vulnerability *= 1.25;
     };
 
     const vulnerabilityDown = function() {
-        vulnerability *= 0.7;
+        vulnerability *= 0.75;
     };
 
     const vulnerabilityReset = function() {
@@ -151,13 +151,16 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         stop(); //stop player movement
         speedReset(); //restore speed
         health = 100; //restore health
+        attackReset();
+        vulnerabilityReset();
         setStatusSprite(0); //restore sprite to no items
+        sprite.setStatusColor("black");
         suddenDeath = 0;
     }
 
-    const SMGDamage = 12;
-    const ARDamage = 20;
-    const ShotgunDamage = 40;
+    const SMGDamage = 8;
+    const ARDamage = 13;
+    const ShotgunDamage = 27;
 
     const getHit = (weaponType, OpponentAttackPower) => {
         console.log('player ' + id + ' got hit');
@@ -247,28 +250,32 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     };
 
     const consumePotion = function(potionType){
+        sprite.setStatusColor(potionType);
         if (potionType === "green"){
-            vulnerabilityDown();
+            vulnerabilityUp();
             slowDown();
             setTimeout(() => {
                 vulnerabilityReset();
                 speedReset();
+                sprite.setStatusColor("black");
             }, 8000);
         }
         else if (potionType === "purple"){
             speedUp();
-            vulnerabilityUp();
+            vulnerabilityDown();
             setTimeout(() => {
                 speedReset();
                 vulnerabilityReset();
+                sprite.setStatusColor("black");
             }, 8000);
         }
         else if (potionType === "orange"){
-            vulnerabilityUp();
+            vulnerabilityDown();
             attackUp();
             setTimeout(() => {
                 vulnerabilityReset();
                 attackReset();
+                sprite.setStatusColor("black");
             }, 8000);
         }
     }
@@ -321,8 +328,11 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         getHit: getHit,
         restore: restore,
         getHP: () => health,
+        setHP: (hp) => health = hp,
+        /*
         setVulnerability: (v) => vulnerability = v,
         setAttackPower: (a) => attackPower = a,
+        */
         getVulnerability: () => vulnerability,
         getAttackPower: () => attackPower,
         setSuddenDeath: setSuddenDeath,

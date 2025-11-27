@@ -266,8 +266,8 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("update playerAnV", (playerId, attackPower, vulnerability)=>{
-        io.emit("update playerAnV", playerId, attackPower, vulnerability);
+    socket.on("update playerAnV", (playerId, potionType)=>{
+        io.emit("update playerAnV", playerId, potionType);
     })
 
     socket.on("get initPotions", () => {
@@ -333,11 +333,11 @@ io.on("connection", (socket) => {
         const clientPlayerPos = JSON.parse(playersPos);
         if (playerId == 1){
             playerPosData = {...clientPlayerPos}; //copy playerPos. Server gives priority to player 1
-        } else {
+        } /* else {
             if (playerPosData.length == 0){ //if playerPosData is empty at the moment
                 playerPosData = {...clientPlayerPos}; //copy
             }
-        }
+        }*/
         io.emit("sync playerPos", JSON.stringify(playerPosData));
     });
 

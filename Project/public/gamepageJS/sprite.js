@@ -31,6 +31,9 @@ const Sprite = function(ctx, x, y) {
     // - `y` - The y scaling factor
     let shadowScale = { x: 1, y: 0.25 };
 
+    //used to determine shadow/status color
+    let statusColor = "black";
+
     // This is the updated time of the current sprite image.
     // It is used to determine the timing to switch to the next sprite image.
     let lastUpdate = 0;
@@ -92,6 +95,13 @@ const Sprite = function(ctx, x, y) {
         return this;
     };
 
+    const setStatusColor = function(value) {
+        if (value != null){
+            statusColor = value;
+        }
+        return this;
+    };
+
     // This function gets the display size of the sprite.
     const getDisplaySize = function() {
         /* Find the scaled width and height of the sprite */
@@ -127,7 +137,7 @@ const Sprite = function(ctx, x, y) {
         const shadowHeight = size.height * shadowScale.y;
 
         /* Draw a semi-transparent oval */
-        ctx.fillStyle = "black";
+        ctx.fillStyle = statusColor;
         ctx.globalAlpha = 0.6;
         ctx.beginPath();
         ctx.ellipse(x, y,
@@ -208,6 +218,7 @@ const Sprite = function(ctx, x, y) {
         setSequence: setSequence,
         setScale: setScale,
         setShadowScale: setShadowScale,
+        setStatusColor: setStatusColor,
         getDisplaySize: getDisplaySize,
         getBoundingBox: getBoundingBox,
         isReady: isReady,

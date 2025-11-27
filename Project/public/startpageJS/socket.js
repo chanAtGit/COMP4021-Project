@@ -187,8 +187,8 @@ const Socket = (function() {
             window.syncPlayersPos(playerPosData);
         });
 
-        socket.on("update playerAnV", (playerId, attackPower, vulnerability) => {
-            window.updatePlayerAnV(playerId, attackPower, vulnerability);
+        socket.on("update playerAnV", (playerId, potionType) => {
+            window.updatePlayerAnV(playerId, potionType);
         });
     };
 
@@ -274,10 +274,10 @@ const Socket = (function() {
         }
     };
 
-    const updatePlayerAnV = function(playerId, attackPower, vulnerability){
+    const updatePlayerAnV = function(playerId, potionType){
         if (socket && socket.connected) {
             //console.log("Bullet info received by socket");
-            socket.emit("update playerAnV", playerId, attackPower, vulnerability); //send server message to update player movement
+            socket.emit("update playerAnV", playerId, potionType); //send server message to update player movement
         }
     };
 

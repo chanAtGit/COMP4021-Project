@@ -643,24 +643,26 @@
             function consumePotion(){
                 if (playerId == 1){
                     setTimeout(() => {
-                        player1.consumePotion(potionType);
-                        potionType = null;
+                        //player1.consumePotion(potionType);
+                        //potionType = null;
                         $("#weapon-slot").css("border-color", "green");
                         $("#item-slot").css("border-color", "grey");
                         weaponSelected = 1;
                         Socket.changePlayerSprite(playerId, statusMap[weaponType]);
-                        Socket.updatePlayerAnV(playerId, player1.getAttackPower(), player1.getVulnerability());
+                        //Socket.updatePlayerAnV(playerId, player1.getAttackPower(), player1.getVulnerability());
+                        Socket.updatePlayerAnV(playerId, potionType);
                         $("#item-slot > .icon").hide();
                     }, 2500);
                 } else {
                     setTimeout(() => {
-                        player2.consumePotion(potionType);
-                        potionType = null;
+                        //player2.consumePotion(potionType);
+                        //potionType = null;
                         $("#weapon-slot").css("border-color", "green");
                         $("#item-slot").css("border-color", "grey");
                         weaponSelected = 1;
                         Socket.changePlayerSprite(playerId, statusMap[weaponType]);
-                        Socket.updatePlayerAnV(playerId, player2.getAttackPower(), player2.getVulnerability());
+                        Socket.updatePlayerAnV(playerId, potionType);
+                        //Socket.updatePlayerAnV(playerId, player2.getAttackPower(), player2.getVulnerability());
                         $("#item-slot > .icon").hide();
                     }, 2500);
                 }
@@ -695,7 +697,7 @@
                 const endX = Number(hpLine.attr("x2"));
 
                 if (player_num == 1){ //player 1
-                    console.log(startX);
+                    //console.log(startX);
                     const currentEndX = startX + Math.floor((health / 100) * (p1_hpLine_x2_init - startX));
                     //console.log(currentEndX);
                     hpLine.attr("x2", currentEndX);
@@ -745,19 +747,25 @@
 
             window.syncPlayersPos = function(playerPosJSON){
                 const playerPosData = JSON.parse(playerPosJSON);
-
                 player1.setXY(playerPosData.player1[0], playerPosData.player1[1]);
+                player1.setHP(playerPosData.player1[2]);
                 player2.setXY(playerPosData.player2[0], playerPosData.player2[1]);
+                player2.setHP(playerPosData.player2[2]);
+
+                $("#player1-HP").text(player1.getHP()); //update health display
+                updateHPLine(1, player1.getHP());
+
+                $("#player2-HP").text(player2.getHP()); //update health display
+                updateHPLine(2, player2.getHP());
             };
 
-            window.updatePlayerAnV = function(playerId, attackPower, vulnerability){
+            window.updatePlayerAnV = function(playerId, potion_drink_type){
                 if (playerId == 1){
-                    player1.setAttackPower(attackPower);
-                    player1.setVulnerability(vulnerability);
+                    player1.consumePotion(potion_drink_type);
                 } else {
-                    player2.setAttackPower(attackPower);
-                    player2.setVulnerability(vulnerability);
+                    player2.consumePotion(potion_drink_type);
                 }
+                potionType = null;
             }
 
             /*Global functions END*/
@@ -808,17 +816,50 @@
             }
 
             function SyncPlayers(){
-                const player1Pos = player1.getXY();
+                try{
+                    const player1Pos = player1.getXY();
                     const player2Pos = player2.getXY();
                     const player1HP = player1.getHP();
                     const player2HP = player2.getHP();
-                    //console.log(player1HP);
+                    //console.log(player2HP);
                     const players_pos = {
-                        player1: [player1Pos.x, player1Pos.y, player1HP],
-                        player2: [player2Pos.x, player2Pos.y, player2HP]
+                    player1: [player1Pos.x, player1Pos.y, player1HP],
+                    player2: [player2Pos.x, player2Pos.y, player2HP]
                     }
                     Socket.syncPos(playerId, JSON.stringify(players_pos));
+                } catch (error) {
+                    console.error('Error syncing:', error);
+                }
             }
+
+            const handlePlayerDeath = (player_num) => {
+                if (player_num == 1){
+                    $("#result-text").css("color", "blue");
+                    $("#result-text span").text("2"); //player 2 won the round
+                    player2_score++; //update score
+                    $("#player2-score").text( player2_score);
+                } else {
+                    $("#result-text").css("color", "red");
+                    $("#result-text span").text("1"); //player 1 won the round
+                    player1_score++; //update score
+                    $("#player1-score").text( player1_score);
+                }
+
+                $("#result-text").show();
+                let timerDuration;
+                if (timeRemaining > 3){
+                    timerDuration = 3000;
+                } else {
+                    timerDuration = (timeRemaining-1)*1000
+                }
+                earlyFinishTimer = setTimeout(()=>{
+                    earlyFinish = 1;
+                    console.log("Starting a new round!");
+                    earlyFinishTimer = null; // Reset the timer reference
+                }, timerDuration); //give three seconds of downtime
+            }
+
+
 
             //Get Player Id
             setTimeout(() => { //wait for connection to be fully established
@@ -840,11 +881,11 @@
             let earlyFinishTimer = null;
             let earlyFinish = 0;
             let suddenDeath = 0;
+            let timeRemaining;
             /* main processing of the game */
             function doFrame(now){
                 const dt = (now - lastTime) / 1000;   // delta time in seconds. Make player and bullet speed independent of framerate.
                 lastTime = now;
-                let timeRemaining;
                 /* Update the time remaining (if game is active) */
                 if (gameActive){
                     currentTime = now / 1000; //update current time in seconds
@@ -910,8 +951,13 @@
                 }
 
                 if (gameActive){
-                    const {dx, dy} = getMovementVector();
-                    Socket.handlePlayerMovement(dx,dy,mouseX,mouseY);
+                    if (player1.isDead() || player2.isDead()){ //stop both players if either player got killed. prevent potential desync
+                        player1.stop();
+                        player2.stop();
+                    } else {
+                        const {dx, dy} = getMovementVector();
+                        Socket.handlePlayerMovement(dx,dy,mouseX,mouseY);
+                    }
                 }
 
                 /* update sprites */
@@ -934,25 +980,9 @@
                             bullets[i].remove(); //kill the bullet
                             $("#player1-HP").text(player1.getHP()); //update health display
                             updateHPLine(1, player1.getHP());
-                            //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
-                            //bullets.splice(i, 1); // Remove dead bullet
+                            SyncPlayers();
                             if (player1.isDead() && earlyFinishTimer === null){ //Handle player death
-                                $("#result-text").css("color", "blue");
-                                $("#result-text span").text("2"); //player 2 won the round
-                                $("#result-text").show();
-                                player2_score++; //update score
-                                $("#player2-score").text( player2_score);
-                                let timerDuration;
-                                if (timeRemaining > 3){
-                                    timerDuration = 3000;
-                                } else {
-                                    timerDuration = (timeRemaining-1)*1000
-                                }
-                                earlyFinishTimer = setTimeout(()=>{
-                                    earlyFinish = 1;
-                                    console.log("Starting a new round!");
-                                    earlyFinishTimer = null; // Reset the timer reference
-                                }, timerDuration); //give three seconds of downtime
+                                setTimeout(handlePlayerDeath(1), 110);
                             }
                         }
                     }
@@ -962,25 +992,10 @@
                             bullets[i].remove(); //kill the bullet
                             $("#player2-HP").text(player2.getHP()); //update health display
                             updateHPLine(2, player2.getHP());
-                            //Socket.sendBulletHit(bullets[i].getXY().x, bullets[i].getXY().y);
-                            //bullets.splice(i, 1); // Remove dead bullet
+                            SyncPlayers();
+                            //delay(150);
                             if (player2.isDead() && earlyFinishTimer === null){
-                                $("#result-text").css("color", "red");
-                                $("#result-text span").text("1"); //player 1 won the round
-                                $("#result-text").show();
-                                player1_score++; //update score
-                                $("#player1-score").text( player1_score);
-                                let timerDuration;
-                                if (timeRemaining > 3){
-                                    timerDuration = 3000;
-                                } else {
-                                    timerDuration = (timeRemaining-1)*1000;
-                                }
-                                earlyFinishTimer = setTimeout(()=>{
-                                    earlyFinish = 1;
-                                    console.log("Starting a new round!");
-                                    earlyFinishTimer = null; // Reset the timer reference
-                                }, timerDuration); //give three seconds of downtime
+                                setTimeout(handlePlayerDeath(2), 110);
                             }   
                         }
                     }
@@ -1055,8 +1070,8 @@
                 potion.setXY(potionPoints[index].x, potionPoints[index].y);
             })          
             
-            sounds.mainGame.currentTime = 0;
-            sounds.mainGame.play();
+            //sounds.mainGame.currentTime = 0;
+            //sounds.mainGame.play();
 
             /* Start the game */
             animationId = requestAnimationFrame(doFrame);
