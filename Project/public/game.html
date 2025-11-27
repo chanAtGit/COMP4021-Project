@@ -768,6 +768,41 @@
                 potionType = null;
             }
 
+            window.handlePlayerDeath = (player_num) => {
+                //console.log("HANDLE PLAYER DEATH");
+                if (alreadyHandledDeath){ //ensure handlePlayerDeath is only called once per round
+                    return;
+                }
+                if (player_num == 1){
+                    $("#result-text").css("color", "blue");
+                    $("#result-text span").text("2"); //player 2 won the round
+                    player2_score++; //update score
+                    //console.log("player 2 score: " + player2_score);
+                    player1.setStatusSprite(10); //double check player 1 sprite is set to dead
+                    $("#player2-score").text( player2_score);
+                } else {
+                    $("#result-text").css("color", "red");
+                    $("#result-text span").text("1"); //player 1 won the round
+                    player1_score++; //update score
+                    player2.setStatusSprite(10); //double check player 1 sprite is set to dead
+                    //console.log("player 1 score: " +player1_score);
+                    $("#player1-score").text( player1_score);
+                }
+
+                $("#result-text").show();
+                alreadyHandledDeath = 1;
+                let timerDuration;
+                if (timeRemaining > 3){
+                    timerDuration = 3000;
+                } else {
+                    timerDuration = (timeRemaining-1)*1000
+                }
+                earlyFinishTimer = setTimeout(()=>{
+                    earlyFinish = 1;
+                    console.log("Starting a new round!");
+                    earlyFinishTimer = null; // Reset the timer reference
+                }, timerDuration); //give three seconds of downtime
+            }
             /*Global functions END*/
 
             function restartRound(){
@@ -832,33 +867,6 @@
                 }
             }
 
-            const handlePlayerDeath = (player_num) => {
-                if (player_num == 1){
-                    $("#result-text").css("color", "blue");
-                    $("#result-text span").text("2"); //player 2 won the round
-                    player2_score++; //update score
-                    $("#player2-score").text( player2_score);
-                } else {
-                    $("#result-text").css("color", "red");
-                    $("#result-text span").text("1"); //player 1 won the round
-                    player1_score++; //update score
-                    $("#player1-score").text( player1_score);
-                }
-
-                $("#result-text").show();
-                let timerDuration;
-                if (timeRemaining > 3){
-                    timerDuration = 3000;
-                } else {
-                    timerDuration = (timeRemaining-1)*1000
-                }
-                earlyFinishTimer = setTimeout(()=>{
-                    earlyFinish = 1;
-                    console.log("Starting a new round!");
-                    earlyFinishTimer = null; // Reset the timer reference
-                }, timerDuration); //give three seconds of downtime
-            }
-
 
 
             //Get Player Id
@@ -880,6 +888,7 @@
             let lastTime = 0;
             let earlyFinishTimer = null;
             let earlyFinish = 0;
+            let alreadyHandledDeath = 0;
             let suddenDeath = 0;
             let timeRemaining;
             /* main processing of the game */
@@ -919,6 +928,7 @@
                             roundStartTime = 0; //reset roundStartTime
                             gameActive = false;
                             earlyFinish = 0; //reset earlyFinish
+                            alreadyHandledDeath = 0;
                             $("#result-text").hide();
                             $("#time-remaining").text(totalRoundTime);
                             $(".round-text").show(); //show round-text
@@ -982,7 +992,8 @@
                             updateHPLine(1, player1.getHP());
                             SyncPlayers();
                             if (player1.isDead() && earlyFinishTimer === null){ //Handle player death
-                                setTimeout(handlePlayerDeath(1), 110);
+                                Socket.handleDeath(1);
+                                //setTimeout(handlePlayerDeath(1), 110);
                             }
                         }
                     }
@@ -995,7 +1006,8 @@
                             SyncPlayers();
                             //delay(150);
                             if (player2.isDead() && earlyFinishTimer === null){
-                                setTimeout(handlePlayerDeath(2), 110);
+                                Socket.handleDeath(2);
+                                //setTimeout(handlePlayerDeath(2), 110);
                             }   
                         }
                     }

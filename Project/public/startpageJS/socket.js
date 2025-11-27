@@ -190,6 +190,10 @@ const Socket = (function() {
         socket.on("update playerAnV", (playerId, potionType) => {
             window.updatePlayerAnV(playerId, potionType);
         });
+
+        socket.on("playerDeath", (player_num)=>{
+            window.handlePlayerDeath(player_num);
+        });
     };
 
     // This function disconnects the socket from the server
@@ -307,6 +311,12 @@ const Socket = (function() {
         }
     };
 
+    const handleDeath = function(player_num){
+        if (socket && socket.connected){
+            socket.emit("get playerDeath", player_num);
+        }
+    };
+
     // This function sends a post message event to the server
     /*
     const postMessage = function(content) {
@@ -337,6 +347,7 @@ const Socket = (function() {
         sendWeaponUpdate, 
         sendPotionUpdate,
         syncPos,
-        updatePlayerAnV
+        updatePlayerAnV,
+        handleDeath
     };
 })();

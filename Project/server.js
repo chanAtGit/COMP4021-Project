@@ -341,6 +341,10 @@ io.on("connection", (socket) => {
         io.emit("sync playerPos", JSON.stringify(playerPosData));
     });
 
+    socket.on("get playerDeath", (player_num)=> {
+        io.emit("playerDeath", player_num);
+    });
+
 });
 
 //-----------------WEBSOCKET SECTION END-------------------//

@@ -114,12 +114,12 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
 
     // This function speeds up the player by 30%. speed * 1.3
     const speedUp = function() {
-        speed *= 1.25;
+        speed = 320*1.25;
     };
 
     // This function slows down the player by 20%. speed * 0.85
     const slowDown = function() {
-        speed *= 0.8;
+        speed = 320*0.8;
     };
 
     const speedReset = function() {
@@ -127,7 +127,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     };
 
     const attackUp = function() {
-        attackPower *= 1.3;
+        attackPower = 1.3;
     };
 
 
@@ -135,12 +135,12 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         attackPower = 1;
     };
 
-    const vulnerabilityUp = function() {
-        vulnerability *= 1.25;
+    const vulnerabilityDown = function() {
+        vulnerability = 1.25;
     };
 
-    const vulnerabilityDown = function() {
-        vulnerability *= 0.75;
+    const vulnerabilityUp = function() {
+        vulnerability = 0.75;
     };
 
     const vulnerabilityReset = function() {
@@ -185,7 +185,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
             }
             //console.log('player ' + id + 'hit with Shotgun');
         }
-        health = Math.round(health);
+        health = Math.floor(health);
         if (health <= 0) {
             health = 0;
             setStatusSprite(10); //death sprite
