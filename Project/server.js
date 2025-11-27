@@ -266,6 +266,10 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("update playerAnV", (playerId, attackPower, vulnerability)=>{
+        io.emit("update playerAnV", playerId, attackPower, vulnerability);
+    })
+
     socket.on("get initPotions", () => {
         //console.log(`init potions:${potions}`)
         // io.emit("initPotions", potions);

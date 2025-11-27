@@ -59,6 +59,12 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     // This is the moving speed (pixels per second) of the player
     let speed = 320;
 
+    // vulnerability to damage (0.7 = 30% resistance, default 1 = 0% resistance)
+    let vulnerability = 1;
+
+    // attack power
+    let attackPower = 1;
+
     // This is the rotation angle (radian) of the player
     let angle = 0;
 
@@ -120,6 +126,27 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         speed = 320;
     };
 
+    const attackUp = function() {
+        attackPower *= 1.3;
+    };
+
+
+    const attackReset = function() {
+        attackPower = 1;
+    };
+
+    const vulnerabilityUp = function() {
+        vulnerability *= 1.3;
+    };
+
+    const vulnerabilityDown = function() {
+        vulnerability *= 0.7;
+    };
+
+    const vulnerabilityReset = function() {
+        vulnerability = 1;
+    };
+
     const restore = function(){
         stop(); //stop player movement
         speedReset(); //restore speed
@@ -132,29 +159,30 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     const ARDamage = 20;
     const ShotgunDamage = 40;
 
-    const getHit = (weaponType) => {
+    const getHit = (weaponType, OpponentAttackPower) => {
         console.log('player ' + id + ' got hit');
         if (weaponType === "SMG") {
-            health -= SMGDamage;
+            health -= SMGDamage*vulnerability*OpponentAttackPower;
             if (suddenDeath){ //double damage in sudden death
-                health -= SMGDamage;
+                health -= SMGDamage*vulnerability*OpponentAttackPower;
             }
             //console.log('player ' + id + ' hit with SMG');
         }
         else if (weaponType === "AR") {
-            health -= ARDamage;
+            health -= ARDamage*vulnerability*OpponentAttackPower;
             if (suddenDeath){ //double damage
-                health -= ARDamage;
+                health -= ARDamage*vulnerability*OpponentAttackPower;
             }
             //console.log('player ' + id + ' hit with AR');
         }
         else if (weaponType === "shotgun"){ //shotgun
-            health -= ShotgunDamage;
+            health -= ShotgunDamage*vulnerability*OpponentAttackPower;
             if (suddenDeath){ //double damage 
-                health -= ShotgunDamage;
+                health -= ShotgunDamage*vulnerability*OpponentAttackPower;
             }
             //console.log('player ' + id + 'hit with Shotgun');
         }
+        health = Math.round(health);
         if (health <= 0) {
             health = 0;
             setStatusSprite(10); //death sprite
@@ -218,6 +246,33 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         sprite.update(time);
     };
 
+    const consumePotion = function(potionType){
+        if (potionType === "green"){
+            vulnerabilityDown();
+            slowDown();
+            setTimeout(() => {
+                vulnerabilityReset();
+                speedReset();
+            }, 8000);
+        }
+        else if (potionType === "purple"){
+            speedUp();
+            vulnerabilityUp();
+            setTimeout(() => {
+                speedReset();
+                vulnerabilityReset();
+            }, 8000);
+        }
+        else if (potionType === "orange"){
+            vulnerabilityUp();
+            attackUp();
+            setTimeout(() => {
+                vulnerabilityReset();
+                attackReset();
+            }, 8000);
+        }
+    }
+
     const fire = function(time, weaponType) {
         if (health <= 0){
             return false;
@@ -254,6 +309,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         speedUp: speedUp,
         slowDown: slowDown,
         speedReset: speedReset,
+        consumePotion: consumePotion,
         getBoundingBox: sprite.getBoundingBox,
         draw: sprite.draw,
         getXY: sprite.getXY,
@@ -265,6 +321,10 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         getHit: getHit,
         restore: restore,
         getHP: () => health,
+        setVulnerability: (v) => vulnerability = v,
+        setAttackPower: (a) => attackPower = a,
+        getVulnerability: () => vulnerability,
+        getAttackPower: () => attackPower,
         setSuddenDeath: setSuddenDeath,
         isDead: () => (health==0)
     };
