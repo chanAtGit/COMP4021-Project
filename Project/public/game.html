@@ -641,6 +641,12 @@
 
             // consume potion
             function consumePotion(){
+                if (!potionType){
+                    return;
+                }
+                sounds.potionUse.currentTime = 0;     
+                sounds.potionUse.play(); 
+                Socket.changePlayerSprite(playerId, statusMap[potionType]+1); //drinking sprite
                 if (playerId == 1){
                     setTimeout(() => {
                         //player1.consumePotion(potionType);
