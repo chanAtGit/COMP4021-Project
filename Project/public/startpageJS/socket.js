@@ -186,6 +186,10 @@ const Socket = (function() {
         socket.on("sync playerPos", (playerPosData) => {
             window.syncPlayersPos(playerPosData);
         });
+
+        socket.on("update playerAnV", (playerId, attackPower, vulnerability) => {
+            window.updatePlayerAnV(playerId, attackPower, vulnerability);
+        });
     };
 
     // This function disconnects the socket from the server
@@ -270,6 +274,13 @@ const Socket = (function() {
         }
     };
 
+    const updatePlayerAnV = function(playerId, attackPower, vulnerability){
+        if (socket && socket.connected) {
+            //console.log("Bullet info received by socket");
+            socket.emit("update playerAnV", playerId, attackPower, vulnerability); //send server message to update player movement
+        }
+    };
+
     //Important socket function - changePlayerSprite
     /*status is an integer value that determines the player status
     0 - noItem
@@ -325,6 +336,7 @@ const Socket = (function() {
         sendPotionPickup,
         sendWeaponUpdate, 
         sendPotionUpdate,
-        syncPos
+        syncPos,
+        updatePlayerAnV
     };
 })();

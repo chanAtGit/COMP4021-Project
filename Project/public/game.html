@@ -555,6 +555,12 @@
             // the mouse event listeners. adjust firing rate.
             $(document).on('mousedown', function(event) {
                 if (event.button === 0) { // Left mouse button
+                    // if on potion slot, consume potion and return
+                    if (weaponSelected == 0) {
+                        consumePotion();
+                        return
+                    };
+
                     isShooting = true;
                     shoot(); // Shoot immediately on press
                     /*
@@ -572,6 +578,12 @@
 
             $(document).on('mouseup', function(event) {
                 if (event.button === 0) { // Left mouse button
+
+                    // if on potion slot, continue consuming potion and return
+                    if (weaponSelected == 0) {
+                        return
+                    };
+
                     isShooting = false;
                     if (shootInterval) {
                         clearInterval(shootInterval);
@@ -582,6 +594,12 @@
 
             // Make sure to also handle if mouse leaves the window
            $(document).on('mouseleave', function() {
+
+                // if on potion slot, continue consuming potion and return
+                if (weaponSelected == 0) {
+                    return
+                };
+
                 isShooting = false;
                 if (shootInterval) {
                     clearInterval(shootInterval);
@@ -618,6 +636,33 @@
                             $("#ammo-counter").text(ammo); //update ammo-counter in html
                         }
                     }
+                }
+            }
+
+            // consume potion
+            function consumePotion(){
+                if (playerId == 1){
+                    setTimeout(() => {
+                        player1.consumePotion(potionType);
+                        potionType = null;
+                        $("#weapon-slot").css("border-color", "green");
+                        $("#item-slot").css("border-color", "grey");
+                        weaponSelected = 1;
+                        Socket.changePlayerSprite(playerId, statusMap[weaponType]);
+                        Socket.updatePlayerAnV(playerId, player1.getAttackPower(), player1.getVulnerability());
+                        $("#item-slot > .icon").hide();
+                    }, 2500);
+                } else {
+                    setTimeout(() => {
+                        player2.consumePotion(potionType);
+                        potionType = null;
+                        $("#weapon-slot").css("border-color", "green");
+                        $("#item-slot").css("border-color", "grey");
+                        weaponSelected = 1;
+                        Socket.changePlayerSprite(playerId, statusMap[weaponType]);
+                        Socket.updatePlayerAnV(playerId, player2.getAttackPower(), player2.getVulnerability());
+                        $("#item-slot > .icon").hide();
+                    }, 2500);
                 }
             }
 
@@ -704,6 +749,16 @@
                 player1.setXY(playerPosData.player1[0], playerPosData.player1[1]);
                 player2.setXY(playerPosData.player2[0], playerPosData.player2[1]);
             };
+
+            window.updatePlayerAnV = function(playerId, attackPower, vulnerability){
+                if (playerId == 1){
+                    player1.setAttackPower(attackPower);
+                    player1.setVulnerability(vulnerability);
+                } else {
+                    player2.setAttackPower(attackPower);
+                    player2.setVulnerability(vulnerability);
+                }
+            }
 
             /*Global functions END*/
 
@@ -875,7 +930,7 @@
                     const bulletPos = bullets[i].getXY();
                     if (bullets[i].getBoundingBox().isPointInBox(player1.getXY().x, player1.getXY().y) && bullets[i].getShooterId() != 1) {
                         if (!player1.isDead()){
-                            player1.getHit(bullets[i].bulletType);
+                            player1.getHit(bullets[i].bulletType, player2.getAttackPower());
                             bullets[i].remove(); //kill the bullet
                             $("#player1-HP").text(player1.getHP()); //update health display
                             updateHPLine(1, player1.getHP());
@@ -903,7 +958,7 @@
                     }
                     else if (bullets[i].getBoundingBox().isPointInBox(player2.getXY().x, player2.getXY().y) && bullets[i].getShooterId() != 2) {
                         if (!player2.isDead()){
-                            player2.getHit(bullets[i].bulletType);
+                            player2.getHit(bullets[i].bulletType, player1.getAttackPower());
                             bullets[i].remove(); //kill the bullet
                             $("#player2-HP").text(player2.getHP()); //update health display
                             updateHPLine(2, player2.getHP());
