@@ -159,6 +159,82 @@
             font-size: 30px;
         }
 
+
+            /* The full‑screen overlay */
+        #gameover-screen {
+            position: fixed;         /* Stay on top of everything */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(128, 128, 128, 0.5); /* Gray with 50% opacity */
+            display: none;          /* Flexbox to center the inner box */
+            align-items: center;    /* Vertical centering */
+            justify-content: center;/* Horizontal centering */
+            z-index: 9999;          /* Ensure it stays above other content */
+        }
+
+        /* The centered box */
+        #gameover-screen .stats {
+            display: flex;               /* Make the children flex items */
+            flex-direction: column;      /* Stack them vertically */
+            gap: 20px;                   /* ← distance between each child */
+            background: white;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
+
+        }
+
+        #gameover-screen button {
+            font-family: "Press Start 2P", sans-serif;
+            background-color: green;
+            color: white;
+            padding: 10px 15px;
+            font-size: 16px;
+        }
+        
+        /*leaderboard */
+        #leaderboard {
+            display: flex;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .names, .wins {
+            flex: 1;                     /* each takes equal width */
+            padding: 15px;
+        }
+
+        .names {
+            background-color: #f0f8ff;
+            border-right: 1px solid #ddd;
+        }
+
+        .wins {
+            background-color: #fff;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
     </style>
 </head>
 <body>
@@ -198,7 +274,7 @@
 
         <!-- Round Text -->
         <div class="round-text">ROUND 1</div>
-        <div id = "result-text">P<span></span> won this round!</div>
+        <div id = "result-text">P<span></span> wins this round!</div>
 
         <!-- Slot Container -->
         <div id="slot-container">
@@ -223,6 +299,51 @@
         </div>
     </div>
 
+    <div id = "gameover-screen">
+        <div>
+            <div class="stats">
+                <h1>Game Over</h1>
+                <div id = "p1-stats">
+                    <h4 style = "color: red;">Player 1</h4>
+                        <p>Total damage dealt: <span id = "damage"></span></p>
+                        <p>Shots fired: <span id = "shots-fired" ></span></p>
+                        <p>Potions used: <span id = "potions-used" ></span></p>
+                        <p>Most used weapon: <span id = "used-weapon" ></span></p>
+                </div>
+
+                <div id = "p2-stats">
+                    <h4 style = "color: blue;">Player 2</h4>
+                        <p>Total damage dealt: <span id = "damage"></span></p>
+                        <p>Shots fired: <span id = "shots-fired" ></span></p>
+                        <p>Potions used: <span id = "potions-used" ></span></p>
+                        <p>Most used weapon: <span id = "used-weapon" ></span></p>
+                </div>
+
+                <div>
+                    <h4 style = "color: gold">Top 5 Leaderboard</h4>
+                    <div id = "leaderboard">
+                        <div class="names">
+                            <h4>Usernames</h4>
+                            <ul>
+                            </ul>
+                        </div>
+
+                        <!-- Right column – Scores -->
+                        <div class="wins">
+                            <h4>Wins</h4>
+                            <ul>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="/">
+                    <button>Go back Home</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
     <script src="/socket.io/socket.io.min.js"></script>
     <script src="startpageJS/socket.js"></script>
@@ -240,6 +361,7 @@
             // Draw arena border on the canvas
             window.playerId = 0; //socket can access this variable. store's player id (1 or 2)
             Socket.connect();
+            window.rankings = null;
 
             $("#weapon-slot > img").hide(); //hide all weapons
             const cv = $("canvas").get(0);
@@ -280,7 +402,8 @@
                 SMG: new Audio("assets/SMG_sound.mp3"),
                 shotgun: new Audio("assets/shotgun_sound.mp3"), 
                 potionUse: new Audio("assets/potion_use.mp3") ,
-                gameover: new Audio("assets/gameover_music.mp3")
+                gameover: new Audio("assets/gameover_music.mp3"),
+                suddenDeath: new Audio("assets/sudden_death_sound.mp3")
             };
 
             /* create sprites */
@@ -563,15 +686,6 @@
 
                     isShooting = true;
                     shoot(); // Shoot immediately on press
-                    /*
-                    let firing_period;
-                    if (weaponType == "AR"){
-                        firing_period = 175; //set firing period
-                    } else if (weaponType == "SMG"){
-                        firing_period = 125;
-                    } else {
-                        firing_period = 450;
-                    }*/
                     shootInterval = setInterval(shoot, 50); //call shoot again
                 }
             });
@@ -739,6 +853,13 @@
                 gunSound.currentTime = 0;     // play from the start
                 gunSound.play();
                 //push bullet to bullets array
+                if (shooterId == 1){
+                    player1.updateWeaponsUsed(weaponType);
+                    player1.updateShotsFired();
+                } else {
+                    player2.updateWeaponsUsed(weaponType);
+                    player2.updateShotsFired();
+                }
                 const bullet = Bullet(context, x, y, angle, shooterId, weaponType, gameArea, obstacles);
                 bullets.push(bullet);
             };
@@ -873,7 +994,27 @@
                 }
             }
 
+            function showGameOver(rankings){ //show gameover screen
+                //show stats
+                $("#p1-stats #damage").text(player2.performance.totalDamageTaken);
+                $("#p1-stats #shots-fired").text(player1.performance.shotsFired);
+                $("#p1-stats #potions-used").text(player1.performance.potionsUsed);
+                $("#p1-stats #used-weapon").text(player1.performance.favouriteWeapon);
 
+                $("#p2-stats #damage").text(player1.performance.totalDamageTaken);
+                $("#p2-stats #shots-fired").text(player2.performance.shotsFired);
+                $("#p2-stats #potions-used").text(player2.performance.potionsUsed);
+                $("#p2-stats #used-weapon").text(player2.performance.favouriteWeapon);
+                //show ranking/leaderboard
+
+                const numOfPlayers = Math.min(5, rankings.length);
+                for (let i = 0; i < numOfPlayers; i++){
+                    $(".names ul").append(`<li>${rankings[i].username}</li>`);
+                    $(".wins ul").append(`<li>${rankings[i].wins}</li>`);
+                }
+
+                $("#gameover-screen").css("display", "flex"); //show game over
+            }
 
             //Get Player Id
             setTimeout(() => { //wait for connection to be fully established
@@ -917,6 +1058,10 @@
                         player1.setSuddenDeath();
                         player2.setSuddenDeath();
                         $("#sudden-death-tag").show();
+
+                        //play sound
+                        sounds.suddenDeath.currentTime = 0;
+                        sounds.suddenDeath.play();
                     }
 
                     if (timeRemaining <= 0 || earlyFinish){ //round duration is over or round finishes early
@@ -940,7 +1085,7 @@
                             $(".round-text").show(); //show round-text
                             restartRound();
                             setTimeout(handleRoundStart, 1000);
-                        } else {
+                        } else { //GAME IS TRULY OVER
                             // Stop the game
                             cancelAnimationFrame(animationId);
                             restartRound(); //restart round for the next game
@@ -951,15 +1096,29 @@
 
                             // Optional: Show game over message
                             if (player1_score >= 2){
-                                $("#result-text").text("P1 WON!");
+                                $("#result-text").text("P1 WINS!");
                                 $("#result-text").css("color", "red");
+                                if (playerId == 1){
+                                    Socket.reportWin(playerId);
+                                }
                             } else if (player2_score >= 2) {
-                                $("#result-text").text("P2 WON!");
+                                $("#result-text").text("P2 WINS!");
                                 $("#result-text").css("color", "blue");
+                                if (playerId == 2){
+                                    Socket.reportWin(playerId);
+                                }
                             }   
 
+                            console.log(player1.performance);
+                            console.log(player2.performance);
                             // Remove event listeners to stop interaction
                             $(document).off("keydown keyup mousemove");
+
+                            //show gameover screen
+                            setTimeout(()=>{ 
+                                console.log(rankings);
+                                showGameOver(rankings);
+                            }, 3000)
 
                             return; //change later
                         }

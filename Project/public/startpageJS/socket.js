@@ -194,6 +194,10 @@ const Socket = (function() {
         socket.on("playerDeath", (player_num)=>{
             window.handlePlayerDeath(player_num);
         });
+
+        socket.on("updated ranking", (rankingsJSON) => {
+            window.rankings = JSON.parse(rankingsJSON);
+        });
     };
 
     // This function disconnects the socket from the server
@@ -317,6 +321,12 @@ const Socket = (function() {
         }
     };
 
+    const reportWin = function(playerId){
+        if (socket && socket.connected){
+            socket.emit("update ranking", playerId);
+        }
+    };
+
     // This function sends a post message event to the server
     /*
     const postMessage = function(content) {
@@ -348,6 +358,7 @@ const Socket = (function() {
         sendPotionUpdate,
         syncPos,
         updatePlayerAnV,
-        handleDeath
+        handleDeath,
+        reportWin
     };
 })();

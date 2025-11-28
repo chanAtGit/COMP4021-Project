@@ -52,6 +52,20 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
           .setShadowScale({ x: 0.4, y: 0.4}) // { x: 0.75, y: 0.20 }
           .useSheet("assets/player_sprites.png");
 
+    const weaponUsedRate = {
+        AR: 0,
+        SMG: 0,
+        shotgun: 0
+    }
+    let weaponLastUsed = null;
+
+    const performance = {
+        totalDamageTaken : 0,
+        shotsFired: 0,
+        potionsUsed: 0,
+        favouriteWeapon: null
+    }
+
     // This is the moving direction:
     let vx = 0;
     let vy = 0;
@@ -164,27 +178,24 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
 
     const getHit = (weaponType, OpponentAttackPower) => {
         console.log('player ' + id + ' got hit');
+        let damage = 0;
         if (weaponType === "SMG") {
-            health -= SMGDamage*vulnerability*OpponentAttackPower;
-            if (suddenDeath){ //double damage in sudden death
-                health -= SMGDamage*vulnerability*OpponentAttackPower;
-            }
-            //console.log('player ' + id + ' hit with SMG');
+            damage = SMGDamage*vulnerability*OpponentAttackPower;
         }
         else if (weaponType === "AR") {
-            health -= ARDamage*vulnerability*OpponentAttackPower;
-            if (suddenDeath){ //double damage
-                health -= ARDamage*vulnerability*OpponentAttackPower;
-            }
-            //console.log('player ' + id + ' hit with AR');
+            damage = ARDamage*vulnerability*OpponentAttackPower
         }
         else if (weaponType === "shotgun"){ //shotgun
-            health -= ShotgunDamage*vulnerability*OpponentAttackPower;
-            if (suddenDeath){ //double damage 
-                health -= ShotgunDamage*vulnerability*OpponentAttackPower;
-            }
+            damage = ShotgunDamage*vulnerability*OpponentAttackPower
             //console.log('player ' + id + 'hit with Shotgun');
         }
+
+        if (suddenDeath){ //double damage in sudden death
+            health -= damage * 2;
+        } else {
+            health -= damage;
+        }
+        performance.totalDamageTaken += damage; //add to performance
         health = Math.floor(health);
         if (health <= 0) {
             health = 0;
@@ -278,6 +289,7 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
                 sprite.setStatusColor("black");
             }, 8000);
         }
+        performance.potionsUsed += 1; //add to performance
     }
 
     const fire = function(time, weaponType) {
@@ -300,12 +312,25 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         if (time - lastFireTime < fireRate) {
             return false; // cannot fire yet
         }
-        else {
+        else { //can fire
             lastFireTime = time;
-            // console.log("lastFireTime updated to " + lastFireTime);
             return true; // can fire
         }
        //return true;
+    }
+
+    const updateWeaponsUsed = (weaponType) => {
+        if (weaponLastUsed != weaponType){
+            weaponLastUsed = weaponType;
+            weaponUsedRate[weaponType]++;
+            const mostUsedWeapon = Object.entries(weaponUsedRate).reduce((acc, [key, value]) => { //find most used weapon so far
+                if (value > weaponUsedRate[acc]) {
+                    return key;
+                }
+                    return acc;
+            }, Object.keys(weaponUsedRate)[0]); // Initialize with the first key
+            performance.favouriteWeapon = mostUsedWeapon;
+        }
     }
 
     // The methods are returned as an object here.
@@ -329,13 +354,12 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         restore: restore,
         getHP: () => health,
         setHP: (hp) => health = hp,
-        /*
-        setVulnerability: (v) => vulnerability = v,
-        setAttackPower: (a) => attackPower = a,
-        */
         getVulnerability: () => vulnerability,
         getAttackPower: () => attackPower,
         setSuddenDeath: setSuddenDeath,
-        isDead: () => (health==0)
+        isDead: () => (health==0),
+        updateShotsFired: () => (performance.shotsFired++),
+        updateWeaponsUsed: updateWeaponsUsed,
+        performance: performance,
     };
 };

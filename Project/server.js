@@ -102,7 +102,8 @@ app.post("/register", (req, res) => {
     // Get the JSON data from the body
     const { username, avatar, name, password } = req.body;
 
-    let users = JSON.parse(fs.readFileSync("data/users.json"));
+    let users = JSON.parse(fs.readFileSync("data/users.json")); //get users
+    let rankings = JSON.parse(fs.readFileSync("data/rankings.json")); //get rankings
 
     if (!username || !avatar || !name || !password) {
         return res.json({ status: "error", error: "Username, avatar, name and password cannot be empty." });
@@ -115,13 +116,21 @@ app.post("/register", (req, res) => {
     }
     //
     const hash = bcrypt.hashSync(password, 10);
-    users[username] = {
+    users[username] = { //add new user
         avatar: avatar,
         name: name,
         password: hash
     };
 
+    const newRanking = { //add new ranking
+        username: username,
+        wins: 0
+    };
+
+    rankings.push(newRanking);
+
     fs.writeFileSync("data/users.json", JSON.stringify(users, null, "   "));
+    fs.writeFileSync("data/rankings.json", JSON.stringify(rankings, null, "   "));
 
     return res.json({ status: "success" });
 });
@@ -177,6 +186,7 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
+    let rankings = JSON.parse(fs.readFileSync("data/rankings.json")); //get rankings
 
     // Add a new user to the online user list
     const current_user = socket.request.session.user; //get socket user
@@ -343,6 +353,24 @@ io.on("connection", (socket) => {
 
     socket.on("get playerDeath", (player_num)=> {
         io.emit("playerDeath", player_num);
+    });
+
+    socket.on("update ranking", (playerId) => {
+        const usernames = Object.keys(onlineUsers); //get the usernames, which are the keys
+        const winner = usernames[playerId-1]; //get winner name
+
+        //update win count
+        for (const ranking of rankings) {
+            if (ranking.username === winner) {
+                ranking.wins++; //increment user
+                break;
+            }
+        }
+
+        // Sort by a numeric property (e.g., 'wins') in descending order
+        rankings.sort((a, b) => b.wins - a.wins);
+        io.emit("updated ranking", JSON.stringify(rankings)); //broadcast to every user of the new ranking
+        fs.writeFileSync("data/rankings.json", JSON.stringify(rankings, null, "   ")); //write rankings to JSON file
     });
 
 });
