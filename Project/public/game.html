@@ -452,7 +452,7 @@
             const saved_obstacles = [...obstacles]; //used to restore obstacles after sudden death
             const p1_init_pos = {x: left, y: top + 128*3};
             const p2_init_pos = {x: right, y: bottom - 128*3}; //true initial location
-            //const p2_init_pos = {x: left+200, y: bottom - 128*3}; //test initial location
+           //const p2_init_pos = {x: left+200, y: bottom - 128*3}; //test initial location
             const player1 = Player(context, p1_init_pos.x, p1_init_pos.y, 1, gameArea, obstacles); // The player 1
             const player2 = Player(context, p2_init_pos.x, p2_init_pos.y, 2, gameArea, obstacles); // The player 2 - test location
             let player1_score = 0;
@@ -1100,6 +1100,7 @@
             initialisePlayer();
 
             let lastTime = 0;
+            let lastSyncTime = 0;
             let earlyFinishTimer = null;
             let earlyFinish = 0;
             let alreadyHandledDeath = 0;
@@ -1270,8 +1271,10 @@
                 });
 
                 //sync movements through socket
-                if (gameActive){
+                if (gameActive && (now - lastSyncTime) >= 1000/165){ //normally sync 165 fps. independent of browser frames
+                    //console.log("Syncing!");
                     SyncPlayers();
+                    lastSyncTime = now;
                 }
 
                 /* Clear the screen */

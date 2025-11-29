@@ -70,8 +70,9 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
     let vx = 0;
     let vy = 0;
 
+    const init_speed = 350; //originally 320
     // This is the moving speed (pixels per second) of the player
-    let speed = 320;
+    let speed = init_speed;
 
     // vulnerability to damage (0.7 = 30% resistance, default 1 = 0% resistance)
     let vulnerability = 1;
@@ -128,20 +129,21 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
 
     // This function speeds up the player by 30%. speed * 1.3
     const speedUp = function() {
-        speed = 320*1.25;
+        speed = init_speed*1.25;
     };
 
     // This function slows down the player by 20%. speed * 0.85
     const slowDown = function() {
-        speed = 320*0.8;
+        speed = init_speed*0.8;
     };
 
     const speedReset = function() {
-        speed = 320;
+        speed = init_speed;
     };
 
     const killed = function(){
         health = 0;
+        speed = 0;
     }
 
     const attackUp = function() {
