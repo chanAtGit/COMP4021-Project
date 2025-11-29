@@ -4,6 +4,10 @@
       "wins": 1
    },
    {
+      "username": "Clinton",
+      "wins": 1
+   },
+   {
       "username": "iam",
       "wins": 0
    },
@@ -13,10 +17,6 @@
    },
    {
       "username": "Ivan",
-      "wins": 0
-   },
-   {
-      "username": "Clinton",
       "wins": 0
    }
 ]
