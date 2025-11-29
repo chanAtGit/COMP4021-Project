@@ -1019,6 +1019,7 @@
             }
 
             //Get Player Id
+            /*
             setTimeout(() => { //wait for connection to be fully established
                 console.log('Attempting getPlayerNum');
                 Socket.getPlayerNum();
@@ -1032,7 +1033,71 @@
                     Socket.getInitPotions();
                     Socket.getInitWeapons();
                 }, 180); //wait till the commmunication finishes. 250 for curtis
-            }, 180); //wait till connection with server. 250 for curtis
+            }, 180); //wait till connection with server. 250 for curtis*/
+
+            /** Utility – returns a promise that resolves after `ms` milliseconds */
+            function delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+/** Async wrapper that runs the whole start‑up sequence */
+            async function initialisePlayer() {
+                try {
+                // 1️⃣ Give the socket a moment to finish connecting
+                    console.log('Waiting for socket connection...');
+                    await delay(180);                 // adjust if you need a longer pause
+
+                // 2️⃣ Ask the server for the player number
+                    console.log('Attempting getPlayerNum');
+    // Assuming `Socket.getPlayerNum` returns a promise or uses a callback.
+    // If it’s callback‑based, wrap it in a promise (see comment below).
+                    await Socket.getPlayerNum();      // <-- replace with your actual async call
+
+    // 3️⃣ Small extra pause **only if you still need it** (e.g., server processing)
+                    await delay(180);                 // adjust as required
+
+    // 4️⃣ At this point `playerId` should be populated by the socket handler
+                    console.log(`You are Player ${playerId}`);
+
+    // 5️⃣ Show the right UI indicator
+                    if (playerId === 1) {
+                        $("#p1-indicator").show();      // show player‑1 indicator
+                    } else if (playerId === 2) {
+                        $("#p2-indicator").show();      // show player‑2 indicator
+                    }
+
+    // 6️⃣ Pull the rest of the game data
+                    await Socket.getInitPotions();    // if these return promises
+                    await Socket.getInitWeapons();    // otherwise wrap them similarly
+
+                    console.log('All initial data loaded.');
+                } catch (err) {
+                    console.error('Error during player initialisation:', err);
+                }
+            }
+
+/* -----------------------------------------------------------------
+   If any of the `Socket.*` methods are **callback‑based** instead of
+   promise‑based, wrap them like this:
+
+   function getPlayerNumAsync() {
+     return new Promise((resolve, reject) => {
+       Socket.getPlayerNum((err, result) => {
+         if (err) reject(err);
+         else {
+           // assuming the callback sets `playerId`
+           resolve(result);
+         }
+       });
+     });
+   }
+
+   Then replace `await Socket.getPlayerNum();` with:
+   `await getPlayerNumAsync();`
+   ----------------------------------------------------------------- */
+
+/* Kick‑off the async initialisation */
+            initialisePlayer();
 
             let lastTime = 0;
             let earlyFinishTimer = null;
