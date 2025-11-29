@@ -140,6 +140,10 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         speed = 320;
     };
 
+    const halt = function(){
+        speed = 0;
+    }
+
     const attackUp = function() {
         attackPower = 1.3;
     };
@@ -361,5 +365,6 @@ const Player = function(ctx, x, y, id, gameArea, obstacles) {
         updateShotsFired: () => (performance.shotsFired++),
         updateWeaponsUsed: updateWeaponsUsed,
         performance: performance,
+        halt: halt
     };
 };

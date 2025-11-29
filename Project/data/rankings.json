@@ -1,18 +1,22 @@
 [
    {
-      "username": "Ivan",
-      "wins": 3
-   },
-   {
-      "username": "Clinton",
-      "wins": 2
-   },
-   {
-      "username": "Auggie",
+      "username": "mike",
       "wins": 1
    },
    {
       "username": "iam",
+      "wins": 0
+   },
+   {
+      "username": "Auggie",
+      "wins": 0
+   },
+   {
+      "username": "Ivan",
+      "wins": 0
+   },
+   {
+      "username": "Clinton",
       "wins": 0
    }
 ]

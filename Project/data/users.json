@@ -18,5 +18,10 @@
       "avatar": "Panda",
       "name": "Auggie",
       "password": "$2b$10$Bl5xb09oXCfNKGLwbGg1GOq5pGepSIHCJt6jc.TWzd9LaOOh1sU0a"
+   },
+   "mike": {
+      "avatar": "Chicken",
+      "name": "mike",
+      "password": "$2b$10$4SQooc1BfC7V/IAoIVEyreqhGjtQ0S37foNhSC4tp0szaU1ZPtQXi"
    }
 }
