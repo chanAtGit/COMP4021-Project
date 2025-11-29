@@ -22,6 +22,7 @@ const Socket = (function() {
         socket.on("users", (onlineUsers) => {
             onlineUsers = JSON.parse(onlineUsers);
             const usernames = Object.keys(onlineUsers); //get the usernames, which are the keys
+            window.players = usernames;
             console.log(usernames);
             $("#connected-users").text(usernames); //display connected users
         });
@@ -34,6 +35,7 @@ const Socket = (function() {
             //OnlineUsersPanel.removeUser(user);
             onlineUsers = JSON.parse(onlineUsers);
             const usernames = Object.keys(onlineUsers); //get the usernames, which are the keys
+            window.players = usernames;
             if (usernames.length === 0){ //if no users left
                 $("#connected-users").text("None");
             } else {
