@@ -1,13 +1,14 @@
 **Game Title: SHOWDOWN**
 
 **Game front page • What will be in it** 
-Game Title
-Registration & Sign in
-Home page
-Game description & player instructions in the middle
-Pair-up button & username at the sidebar
+- Game Title
+- Registration & Sign in
+- Home page
+- Game description & player instructions in the middle
+- Pair-up button & username at the sidebar
 
 **Gameplay page • Describe the game, how to play it, how to win/lose**
+
 The two players are placed in an arena with walls and obstacles. They duel with each other using weapons and potions, collected from the arena. The game lasts up to 3 minutes and 30 seconds. It is split into three rounds, each lasting up to 70 seconds. A player wins a round by depleting their opponent’s HP, initially 100, to 0, with the game’s UI showing both players' HP bars. If the round ends with neither player dying, the player with the highest HP wins. A player wins the game by winning 2 out of three rounds. 
 
 Each player has two slots - a weapon slot and an item slot. The weapon stores the player’s current weapon, while the item slot stores their equipped potion. The player can switch between their weapon and potion by selecting their corresponding slot.
@@ -23,15 +24,17 @@ The game will enter a sudden-death mode if a round reaches its last 15 seconds. 
 WASD keys control the players’ movements, and their avatar faces towards their cursor. ‘Q’ and ‘E’ are used to select the player's weapon and item slot, respectively. Holding the mouse’s left key fires the player’s weapon or consumes their potion. The ‘F’ key is used to collect items.
 
 **Game over page • What will be in it**
-Match Duration
-Damage dealt by each player
-Shots fired by each player
-Number of Potions used by each player
-The most used weapon by each player
-Ranking table of all players by victories 
-Back to the front page button
+
++ Match Duration
++ Damage dealt by each player
++ Shots fired by each player
++ Number of Potions used by each player
++ The most used weapon by each player
++ Ranking table of all players by victories 
++ Back to the front page button
 
 **Cheating • How you will support enabling and disabling it**
+
 Pressing the ‘I’ key in the game will toggle unlimited bullets.
 
 - Location of different weapons 
